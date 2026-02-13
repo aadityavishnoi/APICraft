@@ -1,1 +1,12 @@
-*.env
+node_modules/
+.env
+.env.local
+.env.*.local
+logs/
+*.log
+dist/
+build/
+coverage/
+.DS_Store
+.vscode/
+.idea/
