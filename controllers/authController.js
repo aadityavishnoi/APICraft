@@ -72,4 +72,24 @@ const login = async(req, res) => {
         });
     }
 };
-module.exports = { signup, login };
+
+const generateApiKey = async (req, res) => {
+    try {
+        const apiKey = Math.random().toString(36).substring(2) + Date.now();
+
+        const user = await User.findById(req.user.id);
+        user.apiKey = apiKey;
+        await user.save();
+
+        res.json({
+            message: "API Key Generated!",
+            apiKey
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Failed To Generate API Key!"
+        });
+    }
+}
+module.exports = { signup, login, generateApiKey };
