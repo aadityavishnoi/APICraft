@@ -19,6 +19,11 @@ const userSchema = mongoose.Schema({
 
     apiKey: {
         type: String,
+    },
+
+    usageCount: {
+        type: Number,
+        default: 0
     }
 });
 

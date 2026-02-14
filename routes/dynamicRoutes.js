@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
+const usageMiddleware = require("../middleware/usageMiddleware");
 const {
   createData,
   getData,
@@ -9,9 +10,9 @@ const {
   deleteData
 } = require("../controllers/dynamicController");
 
-router.post("/api/:collection", authMiddleware, createData);
-router.get("/api/:collection", authMiddleware, getData);
-router.put("/api/:collection/:id", authMiddleware, updateData);
-router.delete("/api/:collection/:id", authMiddleware, deleteData);
+router.post("/api/:collection", authMiddleware, usageMiddleware, createData);
+router.get("/api/:collection", authMiddleware, usageMiddleware, getData);
+router.put("/api/:collection/:id", authMiddleware, usageMiddleware, updateData);
+router.delete("/api/:collection/:id", authMiddleware, usageMiddleware, deleteData);
 
 module.exports = router;
