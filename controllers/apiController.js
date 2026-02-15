@@ -1,5 +1,6 @@
 const { get } = require("mongoose");
 const Collection = require("../models/Collection");
+const ApiLog = require("../models/ApiLog");
 
 const createCollection = async (req, res) => {
     try {
@@ -84,4 +85,18 @@ res.status(500).json({
 });
 }
 };
-module.exports = { createCollection, getCollection, deleteCollection, updateCollection };
+
+const getApiLogs = async (req, res) => {
+  try {
+    const logs = await ApiLog.find({
+      userId: req.user.id
+    }).sort({ createdAt: -1 });
+
+    res.json(logs);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching logs"
+    });
+  }
+};
+module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs };

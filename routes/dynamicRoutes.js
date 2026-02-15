@@ -4,6 +4,8 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const usageMiddleware = require("../middleware/usageMiddleware");
 const apiKeyMiddleware = require("../middleware/apiKeyMiddleware");
+const logMiddleware = require("../middleware/logMiddleware");
+
 const {
   createData,
   getData,
@@ -11,9 +13,9 @@ const {
   deleteData
 } = require("../controllers/dynamicController");
 
-router.post("/api/:collection", apiKeyMiddleware, usageMiddleware, createData);
-router.get("/api/:collection", apiKeyMiddleware, usageMiddleware, getData);
-router.put("/api/:collection/:id", apiKeyMiddleware, usageMiddleware, updateData);
-router.delete("/api/:collection/:id", apiKeyMiddleware, usageMiddleware, deleteData);
+router.post("/api/:collection", apiKeyMiddleware, usageMiddleware, logMiddleware, createData);
+router.get("/api/:collection", apiKeyMiddleware, usageMiddleware, logMiddleware, getData);
+router.put("/api/:collection/:id", apiKeyMiddleware, usageMiddleware, logMiddleware, updateData);
+router.delete("/api/:collection/:id", apiKeyMiddleware, usageMiddleware, logMiddleware, deleteData);
 
 module.exports = router;
