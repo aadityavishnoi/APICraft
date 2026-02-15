@@ -1,5 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const helmet = require("helmet");
+const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const apiRoutes = require("./routes/apiRoutes");
@@ -7,7 +9,13 @@ const dynamicRoutes = require("./routes/dynamicRoutes");
 dotenv.config();
 connectDB();
 const app = express();
-app.use(express.json());
+app.use(express.json({limit: "10kb"}));
+app.use(helmet());
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key"]
+}));
 app.get("/", (req, res) => {
     res.send("Server Is Running!");
 })

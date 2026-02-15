@@ -99,4 +99,30 @@ const getApiLogs = async (req, res) => {
     });
   }
 };
-module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs };
+
+const generateDocs = async (req, res) => {
+    try {
+        const collections = await Collection.find({
+            userId: req.user.id
+        });
+
+        const docs = collections.map(col => ({
+            collection: col.collectionName,
+            endpoints: {
+                create: `POST /api/${col.collectionName}`,
+                get: `GET /api/${col.collectionName}`,
+                update: `PUT /api/${col.collectionName}/:id`,
+                delete: `DELETE /api/${col.collectionName}/:id`
+            },
+            fields: col.fields
+        }));
+
+        res.json(docs);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Docs Generated Successfully!"
+        });
+    }
+};
+module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, generateDocs };
