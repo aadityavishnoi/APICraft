@@ -24,6 +24,10 @@ const userSchema = mongoose.Schema({
     usageCount: {
         type: Number,
         default: 0
+    },
+    usageLimit: {
+        type: Number,
+        default: 1000
     }
 });
 

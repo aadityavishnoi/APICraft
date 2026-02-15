@@ -10,6 +10,12 @@ const usageMiddleware = async (req, res, next) => {
             });
         }
 
+        if(user.usageCount >= user.usageLimit) {
+            res.json({
+                message: "API Limit Exceeded!"
+            });
+        }
+
         user.usageCount += 1;
         await user.save();
         next();
@@ -20,4 +26,5 @@ const usageMiddleware = async (req, res, next) => {
         });
     }
 };
+
 module.exports = usageMiddleware;
