@@ -10,15 +10,23 @@ const apiKeyMiddleware = async (req, res, next) => {
             });
         }
 
-        const user = await User.findOne({ apiKey });
+        const user = await User.find();
+        let validUser = null;
 
-        if(!user){
+        for(const user of users) {
+            if(match){
+                validUser = user;
+                break;
+            }
+        }
+
+        if(!validUser){
             return res.status(403).json({
                 message: "Invalid API Key"
             });
         }
 
-        req.user = user;
+        req.user = validUser;
         next();
     } catch (error) {
         console.log(error);

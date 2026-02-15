@@ -78,7 +78,10 @@ const generateApiKey = async (req, res) => {
         const apiKey = Math.random().toString(36).substring(2) + Date.now();
 
         const user = await User.findById(req.user.id);
-        user.apiKey = apiKey;
+        const bcrypt = require("bcrypt");
+
+        const hashedKey = await bcrypt.hash(apiKey, 10);
+        user.apiKey = hashedKey;
         await user.save();
 
         res.json({
