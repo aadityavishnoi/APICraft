@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const apiRoutes = require("./routes/apiRoutes");
 const dynamicRoutes = require("./routes/dynamicRoutes");
+const swaggerUi = require("swagger-ui-express");
 dotenv.config();
 connectDB();
 const app = express();
@@ -22,7 +23,11 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api", apiRoutes);
 app.use(dynamicRoutes);
+const YAML = require("yamljs");
 
+const swaggerDocument = YAML.load("./docs/openapi.yaml");
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
