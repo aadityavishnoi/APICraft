@@ -142,6 +142,6 @@ Postman collection can be imported using OpenAPI YAML file.
 ## 👨‍💻 Author
 
 **APICraft Backend Project**
-Built for scalable dynamic API platform development.
+By Aaditya Vishnoi
 
 ---
