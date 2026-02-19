@@ -19,6 +19,7 @@
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.1",
+    "react-router-dom": "^7.13.0",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"
   }
