@@ -2,7 +2,7 @@ import React from "react";
 import "../../index.css";
 import logo from "../../assets/ApiCraft.png";
 import { useState } from "react";
-
+import { Link } from "react-router-dom";
 export default function Login() {
     const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
@@ -72,7 +72,7 @@ const handleLogin = async() => {
         <h1 className="text-2xl font-outfit text-white text-center mb-2">
           Welcome Back
         </h1>
-        <p className="text-gray-400 text-center mb-6">
+        <p className="text-gray-400 text-center mb-6 font-outfit">
           Login to continue
         </p>
 
@@ -113,7 +113,9 @@ const handleLogin = async() => {
             Forgot Password?
           </span>
           <span className="font-outfit text-gray-400 cursor-pointer hover:text-white">
-            Sign Up
+            <Link to="/signup">
+             Sign Up
+            </Link>
           </span>
         </div>
 
