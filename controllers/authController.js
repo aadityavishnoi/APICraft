@@ -68,10 +68,9 @@ const login = async(req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        ApiKey: user.apiKey,
         usageCount: user.usageCount,
-        usageLimit: user.usageLimit 
-  }
+        usageLimit: user.usageLimit
+    },
 });
     } catch (error) {
         console.log(error);
