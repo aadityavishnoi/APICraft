@@ -9,6 +9,7 @@ import ApiKeysView from './pages/ApiKeysView';
 import LogsView from './pages/LogsView';
 import SettingsView from './pages/SettingsView';
 import DocsView from './pages/DocsView';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const PrivateRoute = ({ children }) => {
   const { token } = useContext(AuthContext);
@@ -19,7 +20,8 @@ function App() {
   const { token } = useContext(AuthContext);
 
   return (
-    <Router>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <Router>
       <Routes>
         <Route path="/login" element={!token ? <AuthView /> : <Navigate to="/" replace />} />
         
@@ -34,6 +36,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
+    </GoogleOAuthProvider>
   );
 }
 

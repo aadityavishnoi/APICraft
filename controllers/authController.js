@@ -3,10 +3,64 @@ const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        const { sub: googleId, email, name, picture } = ticket.getPayload();
+
+        let user = await User.findOne({ 
+            $or: [{ googleId }, { email }] 
+        });
+
+        if (user) {
+            // Update googleId if not present (link existing email account)
+            if (!user.googleId) {
+                user.googleId = googleId;
+                await user.save();
+            }
+
+            const token = jwt.sign(
+                { id: user._id },
+                process.env.JWT_SECRET,
+                { expiresIn: "1d" }
+            );
+
+            return res.json({
+                message: "Login Successful!",
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    usageCount: user.usageCount,
+                    usageLimit: user.usageLimit
+                }
+            });
+        } else {
+            // New user - frontend must prompt for name and password
+            return res.status(200).json({
+                new_user: true,
+                email,
+                name, // Provide suggested name from Google
+                googleId
+            });
+        }
+    } catch (error) {
+        console.error("Google Auth Error:", error);
+        res.status(500).json({ message: "Google Authentication Failed" });
+    }
+};
 
 const signup = async (req, res) => {
     try {
-        const{name, email, password} = req.body;
+        const { name, email, password, googleId } = req.body;
 
         const existingUser = await User.findOne({ email });
         if(existingUser) {
@@ -18,7 +72,8 @@ const signup = async (req, res) => {
         const newUser = new User({
             name,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            googleId
         });
 
         await newUser.save();

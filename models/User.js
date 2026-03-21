@@ -12,6 +12,12 @@ const userSchema = mongoose.Schema({
         type: String
     },
 
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+
     createdAt: {
         type: Date,
         default: Date.now()
