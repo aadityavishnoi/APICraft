@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 import { GlassCard } from '../components/GlassCard';
@@ -39,6 +39,20 @@ const SettingsView = () => {
       setLoading(false);
     }
   };
+
+  const fetchProfile = async () => {
+    try {
+      const { data } = await api.get('/auth/profile');
+      setProfileData({ name: data.name, email: data.email, password: '' });
+      login(data, localStorage.getItem('token'));
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const handleDeleteAccount = async () => {
     try {

@@ -138,4 +138,20 @@ const deleteAccount = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, generateApiKey, updateUser, deleteAccount };
+const getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.json({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            usageCount: user.usageCount,
+            usageLimit: user.usageLimit
+        });
+    } catch(err) {
+        res.status(500).json({ message: "Failed to fetch profile" });
+    }
+};
+
+module.exports = { signup, login, generateApiKey, updateUser, deleteAccount, getProfile };
