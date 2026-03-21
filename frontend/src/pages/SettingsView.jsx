@@ -111,23 +111,23 @@ const SettingsView = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Requests</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{user?.usageCount || 0}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{user?.usageCount !== undefined ? user.usageCount : '...'}</div>
             </div>
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Monthly Limit</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{user?.usageLimit || 1000}</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{user?.usageLimit !== undefined ? user.usageLimit : '...'}</div>
             </div>
           </div>
           <div style={{ marginTop: '1.5rem' }}>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between' }}>
               <span>Utilization</span>
-              <span>{Math.round(((user?.usageCount || 0) / (user?.usageLimit || 1000)) * 100)}%</span>
+              <span>{user?.usageCount !== undefined && user?.usageLimit !== undefined ? Math.round((user.usageCount / user.usageLimit) * 100) : '...'}%</span>
             </div>
             <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
               <div style={{ 
                 height: '100%', 
                 background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))', 
-                width: `${Math.min(100, Math.round(((user?.usageCount || 0) / (user?.usageLimit || 1000)) * 100))}%`,
+                width: `${user?.usageCount !== undefined && user?.usageLimit !== undefined ? Math.min(100, Math.round((user.usageCount / user.usageLimit) * 100)) : 0}%`,
                 transition: 'width 1s ease-out'
               }}></div>
             </div>
