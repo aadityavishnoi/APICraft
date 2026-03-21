@@ -209,4 +209,5 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, generateApiKey, updateUser, deleteAccount, getProfile };
+module.exports = { signup, login, generateApiKey, updateUser, deleteAccount, getProfile, googleLogin };
+
