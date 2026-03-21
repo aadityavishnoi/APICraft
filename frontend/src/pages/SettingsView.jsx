@@ -42,7 +42,9 @@ const SettingsView = () => {
 
   const fetchProfile = async () => {
     try {
+      console.log('Fetching profile data...');
       const { data } = await api.get('/auth/profile');
+      console.log('Profile data received:', data);
       setProfileData({ name: data.name, email: data.email, password: '' });
       login(data, localStorage.getItem('token'));
     } catch (err) {
