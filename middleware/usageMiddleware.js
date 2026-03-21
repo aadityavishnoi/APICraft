@@ -11,7 +11,7 @@ const usageMiddleware = async (req, res, next) => {
         }
 
         if(user.usageCount >= user.usageLimit) {
-            res.json({
+            return res.status(429).json({
                 message: "API Limit Exceeded!"
             });
         }

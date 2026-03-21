@@ -32,6 +32,19 @@ const createData = async (req, res) => {
       });
     }
 
+    for (let key of incomingFields) {
+      if (typeof req.body[key] === 'object' && req.body[key] !== null) {
+        return res.status(400).json({
+          message: "Nested objects are not allowed in this dynamic collection."
+        });
+      }
+      if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
+        return res.status(400).json({
+          message: "Field value exceeds maximum length of 5000 characters."
+        });
+      }
+    }
+
     const Model = mongoose.connection.collection(config.collectionName);
 
     const result = await Model.insertOne(req.body);
@@ -111,6 +124,19 @@ const updateData = async (req, res) => {
         message: "Invalid Fields!",
         invalidFields
       });
+    }
+
+    for (let key of incomingFields) {
+      if (typeof req.body[key] === 'object' && req.body[key] !== null) {
+        return res.status(400).json({
+          message: "Nested objects are not allowed in this dynamic collection."
+        });
+      }
+      if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
+        return res.status(400).json({
+          message: "Field value exceeds maximum length of 5000 characters."
+        });
+      }
     }
 
     // ObjectId validation

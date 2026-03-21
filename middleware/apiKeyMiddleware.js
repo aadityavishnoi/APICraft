@@ -11,27 +11,31 @@ const apiKeyMiddleware = async (req, res, next) => {
       });
     }
 
-    // All users with API key
-    const users = await User.find({ apiKey: { $exists: true } });
-
-    let validUser = null;
-
-    for (const user of users) {
-      const match = await bcrypt.compare(apiKey, user.apiKey);
-
-      if (match) {
-        validUser = user;
-        break;
-      }
+    if (!apiKey.includes('.')) {
+        return res.status(401).json({
+          message: "Invalid API key format"
+        });
     }
 
-    if (!validUser) {
+    const [userId, secretPart] = apiKey.split('.');
+
+    const user = await User.findById(userId);
+
+    if (!user || !user.apiKey) {
       return res.status(403).json({
         message: "Invalid API key"
       });
     }
 
-    req.user = validUser;
+    const match = await bcrypt.compare(secretPart, user.apiKey);
+
+    if (!match) {
+      return res.status(403).json({
+        message: "Invalid API key"
+      });
+    }
+
+    req.user = user;
     next();
 
   } catch (error) {

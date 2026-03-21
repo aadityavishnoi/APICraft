@@ -1,11 +1,9 @@
-const UserModel = require("../models/User");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const signup = async (req, res) => {
-    console.log(req.body);
     try {
         const{name, email, password} = req.body;
 
@@ -36,7 +34,6 @@ const signup = async (req, res) => {
 }
 
 const login = async(req, res) => {
-    console.log(req.body);
     try {
         const { email, password } = req.body;
 
@@ -82,12 +79,12 @@ const login = async(req, res) => {
 
 const generateApiKey = async (req, res) => {
     try {
-        const apiKey = Math.random().toString(36).substring(2) + Date.now();
+        const secretPart = Math.random().toString(36).substring(2) + Date.now();
+        const apiKey = req.user.id + "." + secretPart;
 
         const user = await User.findById(req.user.id);
-        const bcrypt = require("bcrypt");
 
-        const hashedKey = await bcrypt.hash(apiKey, 10);
+        const hashedKey = await bcrypt.hash(secretPart, 10);
         user.apiKey = hashedKey;
         await user.save();
 
