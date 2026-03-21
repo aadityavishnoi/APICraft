@@ -21,18 +21,42 @@ const apiKeyMiddleware = async (req, res, next) => {
 
     const user = await User.findById(userId);
 
-    if (!user || !user.apiKey) {
+    if (!user) {
       return res.status(403).json({
         message: "Invalid API key"
       });
     }
 
-    const match = await bcrypt.compare(secretPart, user.apiKey);
+    let match = false;
+    let validKeyObj = null;
+
+    if (user.apiKey) {
+      match = await bcrypt.compare(secretPart, user.apiKey);
+    }
+
+    if (!match && user.apiKeys && user.apiKeys.length > 0) {
+      for (let k of user.apiKeys) {
+        if (!k.revoked) {
+          const isMatch = await bcrypt.compare(secretPart, k.keyHash);
+          if (isMatch) {
+            match = true;
+            validKeyObj = k;
+            break;
+          }
+        }
+      }
+    }
 
     if (!match) {
       return res.status(403).json({
         message: "Invalid API key"
       });
+    }
+
+    if (validKeyObj) {
+      validKeyObj.lastUsed = new Date();
+      validKeyObj.requestCount += 1;
+      await user.save();
     }
 
     req.user = user;

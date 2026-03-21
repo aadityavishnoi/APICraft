@@ -88,15 +88,85 @@ res.status(500).json({
 
 const getApiLogs = async (req, res) => {
   try {
-    const logs = await ApiLog.find({
-      userId: req.user.id
-    }).sort({ createdAt: -1 });
+    const { collection, method, status, limit } = req.query;
+    
+    let query = { userId: req.user.id };
+    
+    if (collection && collection !== 'ALL') query.collectionName = collection;
+    if (method && method !== 'ALL') query.method = method;
+    if (status && status !== 'ALL') {
+        if (status === '2xx') query.status = { $gte: 200, $lt: 300 };
+        else if (status === '4xx') query.status = { $gte: 400, $lt: 500 };
+        else if (status === '5xx') query.status = { $gte: 500, $lt: 600 };
+    }
+
+    let limitNum = parseInt(limit, 10);
+    if (isNaN(limitNum)) limitNum = 50;
+
+    const logs = await ApiLog.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limitNum);
 
     res.json(logs);
   } catch (error) {
-    res.status(500).json({
-      message: "Error fetching logs"
+    res.status(500).json({ message: "Error fetching logs" });
+  }
+};
+
+const getLogStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const totalCollections = await Collection.countDocuments({ userId });
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const totalCalls30d = await ApiLog.countDocuments({ userId, createdAt: { $gte: thirtyDaysAgo } });
+    
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    const failedCalls24h = await ApiLog.countDocuments({ userId, createdAt: { $gte: twentyFourHoursAgo }, status: { $gte: 400 } });
+    
+    const User = require("../models/User");
+    const user = await User.findById(userId);
+    const activeKeys = user && user.apiKeys ? user.apiKeys.filter(k => !k.revoked).length : 0;
+    
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentLogs = await ApiLog.find({ userId, createdAt: { $gte: sevenDaysAgo } });
+    
+    const lineChart = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        lineChart[dateStr] = 0;
+    }
+    
+    const doughnutChart = {};
+    const barChart = { '2xx': 0, '4xx': 0, '5xx': 0 };
+    
+    for (let log of recentLogs) {
+        const dateStr = new Date(log.createdAt).toISOString().split('T')[0];
+        if (lineChart[dateStr] !== undefined) lineChart[dateStr]++;
+        
+        doughnutChart[log.collectionName] = (doughnutChart[log.collectionName] || 0) + 1;
+        
+        if (log.status >= 200 && log.status < 300) barChart['2xx']++;
+        else if (log.status >= 400 && log.status < 500) barChart['4xx']++;
+        else if (log.status >= 500) barChart['5xx']++;
+    }
+    
+    const lineChartData = Object.keys(lineChart).sort().map(date => ({ date, calls: lineChart[date] }));
+    const doughnutChartData = Object.keys(doughnutChart).map(name => ({ name, value: doughnutChart[name] }));
+    const barChartData = Object.keys(barChart).map(name => ({ name, value: barChart[name] }));
+    
+    res.json({
+        stats: { totalCollections, totalCalls30d, activeKeys, failedCalls24h },
+        charts: { lineChartData, doughnutChartData, barChartData }
     });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error fetching stats" });
   }
 };
 
@@ -125,4 +195,4 @@ const generateDocs = async (req, res) => {
         });
     }
 };
-module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, generateDocs };
+module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs };

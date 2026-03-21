@@ -17,9 +17,9 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "x-api-key"]
 }));
-app.get("/", (req, res) => {
-    res.send("Server Is Running!");
-})
+const path = require("path");
+app.use(express.static(path.join(__dirname, "frontend", "dist")));
+
 app.use("/api/auth", authRoutes);
 app.use("/api", apiRoutes);
 app.use(dynamicRoutes);
@@ -28,6 +28,12 @@ const YAML = require("yamljs");
 const swaggerDocument = YAML.load("./docs/openapi.yaml");
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use((req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

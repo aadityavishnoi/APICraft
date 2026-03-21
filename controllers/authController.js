@@ -99,4 +99,33 @@ const generateApiKey = async (req, res) => {
         });
     }
 }
-module.exports = { signup, login, generateApiKey };
+
+const updateUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        if (name) user.name = name;
+        if (email) user.email = email;
+        if (password) {
+            user.password = await bcrypt.hash(password, 10);
+        }
+
+        await user.save();
+        res.json({ message: "Profile updated successfully" });
+    } catch(err) {
+        res.status(500).json({ message: "Failed to update profile" });
+    }
+};
+
+const deleteAccount = async (req, res) => {
+    try {
+        await User.findByIdAndDelete(req.user.id);
+        res.json({ message: "Account deleted successfully" });
+    } catch(err) {
+        res.status(500).json({ message: "Failed to delete account" });
+    }
+};
+
+module.exports = { signup, login, generateApiKey, updateUser, deleteAccount };

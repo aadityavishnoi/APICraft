@@ -10,7 +10,7 @@ servers:
 
 paths:
 
-  /signup:
+  /api/auth/signup:
     post:
       summary: User Signup
       requestBody:
@@ -30,7 +30,7 @@ paths:
         "200":
           description: User created
 
-  /login:
+  /api/auth/login:
     post:
       summary: User Login
       requestBody:
@@ -48,7 +48,7 @@ paths:
         "200":
           description: Returns JWT token
 
-  /generate-api-key:
+  /api/auth/generate-api-key:
     post:
       summary: Generate API Key
       security:
@@ -57,7 +57,7 @@ paths:
         "200":
           description: API key generated
 
-  /create-collection:
+  /api/create-collection:
     post:
       summary: Create Collection
       security:
@@ -79,7 +79,7 @@ paths:
         "200":
           description: Collection created
 
-  /collections:
+  /api/collections:
     get:
       summary: Get All Collections
       security:
@@ -88,7 +88,7 @@ paths:
         "200":
           description: Collections list
 
-  /collections/{name}:
+  /api/collections/{name}:
     put:
       summary: Update Collection
       security:
@@ -182,7 +182,7 @@ paths:
         "200":
           description: Deleted
 
-  /api-logs:
+  /api/api-logs:
     get:
       summary: API Usage Logs
       security:
@@ -191,7 +191,7 @@ paths:
         "200":
           description: Logs returned
 
-  /api-docs:
+  /api/api-docs:
     get:
       summary: Auto Generated API Docs
       security:

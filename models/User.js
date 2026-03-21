@@ -21,6 +21,15 @@ const userSchema = mongoose.Schema({
         type: String,
     },
 
+    apiKeys: [{
+        name: String,
+        keyHash: String,
+        createdAt: { type: Date, default: Date.now },
+        lastUsed: { type: Date },
+        requestCount: { type: Number, default: 0 },
+        revoked: { type: Boolean, default: false }
+    }],
+
     usageCount: {
         type: Number,
         default: 0
