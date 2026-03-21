@@ -46,8 +46,8 @@ const AuthView = () => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
-      width: '100vw', 
-      height: '100vh', 
+      minWidth: '1200px', 
+      minHeight: '100vh', 
       background: 'var(--bg-primary)',
       padding: '1rem'
     }}>

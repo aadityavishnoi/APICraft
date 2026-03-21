@@ -4,7 +4,7 @@ import TopBar from './TopBar';
 
 const DashboardLayout = () => {
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', background: 'transparent' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', minWidth: '1200px', background: 'transparent' }}>
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TopBar />
