@@ -70,30 +70,30 @@ const AuthView = () => {
 
       {/* Right Form Panel */}
       <div className="auth-right" style={{ flex: '0 0 500px', padding: '4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'rgba(255,255,255,0.01)' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>{mode === 'login' ? 'System Login' : 'Initialize Account'}</h2>
+        <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>{mode === 'login' ? 'Account Login' : 'Create Account'}</h2>
         <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>
-          {mode === 'login' ? 'Enter credentials to access the console.' : 'Deploy your first cluster today.'}
+          {mode === 'login' ? 'Enter your details to access your dashboard.' : 'Start building your API ecosystem today.'}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           {mode === 'signup' && (
             <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', fontFamily: 'var(--font-mono)' }}>$ SYS.USER_NAME</label>
-              <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Full Name</label>
+              <input type="text" required placeholder="User name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
             </div>
           )}
           <div>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', fontFamily: 'var(--font-mono)' }}>$ SYS.USER_EMAIL</label>
-            <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+            <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Email Address</label>
+            <input type="email" required placeholder="Email address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
           </div>
           <div>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', fontFamily: 'var(--font-mono)' }}>$ SYS.AUTH_TOKEN</label>
-            <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+            <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Password</label>
+            <input type="password" required placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
           </div>
           {mode === 'signup' && (
             <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.4rem', display: 'block', fontFamily: 'var(--font-mono)' }}>$ SYS.AUTH_VERIFY</label>
-              <input type="password" required value={formData.confirm} onChange={e => setFormData({...formData, confirm: e.target.value})} />
+              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Confirm Password</label>
+              <input type="password" required placeholder="Verify password" value={formData.confirm} onChange={e => setFormData({...formData, confirm: e.target.value})} />
             </div>
           )}
 
@@ -104,14 +104,14 @@ const AuthView = () => {
           )}
 
           <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem', padding: '1rem', width: '100%', justifyContent: 'space-between' }}>
-            {loading ? 'Executing...' : (mode === 'login' ? 'Authenticate' : 'Compile User')}
+            {loading ? 'Please wait...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
             <ArrowRight size={18} />
           </button>
         </form>
 
         <div style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
           <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', textDecoration: 'underline', padding: 0 }}>
-            {mode === 'login' ? "Don't have an account? Init one." : "Already compiled? Authenticate."}
+            {mode === 'login' ? "Don't have an account? Sign up." : "Already have an account? Log in."}
           </button>
         </div>
       </div>

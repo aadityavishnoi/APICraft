@@ -76,10 +76,10 @@ const ApiKeysView = () => {
     <div style={{ paddingBottom: '2rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>Access Cryptography</h1>
-          <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>$ monitor /keys --all</p>
+          <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>API Keys</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Manage your secure access tokens for external requests.</p>
         </div>
-        <button className="btn-primary" onClick={() => setModalOpen(true)}><Plus size={18} /> Generate Kernel Key</button>
+        <button className="btn-primary" onClick={() => setModalOpen(true)}><Plus size={18} /> Create API Key</button>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '2rem' }}>
@@ -98,7 +98,7 @@ const ApiKeysView = () => {
               </div>
             </div>
 
-            <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>IDENTIFIER_TAG:</div>
+            <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Key Identifier:</div>
             <div style={{ background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: k.revoked ? 'line-through' : 'none' }}>
                 {k.id}
@@ -127,27 +127,27 @@ const ApiKeysView = () => {
           <div className="glass-card" style={{ width: '500px', background: 'var(--bg-deep)', border: '1px solid var(--accent-primary)', boxShadow: '0 0 50px rgba(0, 212, 255, 0.15)' }}>
             {!generatedKey ? (
               <>
-                <h3 style={{ marginBottom: '0.5rem', color: 'var(--accent-primary)', fontFamily: 'var(--font-sans)', fontSize: '1.5rem' }}>Initialize Crypto Token</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2.5rem', lineHeight: 1.5 }}>Provide an identifier metadata tag to monitor this specific token track inside the logs.</p>
+                <h3 style={{ marginBottom: '0.5rem', color: 'var(--accent-primary)', fontFamily: 'var(--font-sans)', fontSize: '1.5rem' }}>Create New API Key</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2.5rem', lineHeight: 1.5 }}>Provide a name for this key to help you identify it in your logs.</p>
                 <form onSubmit={handleGenerate}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--accent-secondary)', marginBottom: '0.5rem', fontFamily: 'var(--font-mono)' }}>$ SYS.TOKEN_ID</label>
-                  <input type="text" placeholder="e.g. Server A" autoFocus required value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ marginBottom: '2.5rem', fontSize: '1.1rem' }} />
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--accent-secondary)', marginBottom: '0.5rem' }}>Key Name</label>
+                  <input type="text" placeholder="e.g. Mobile App" autoFocus required value={newKeyName} onChange={e => setNewKeyName(e.target.value)} style={{ marginBottom: '2.5rem', fontSize: '1.1rem' }} />
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button type="button" className="btn-outline" onClick={closeGenModal} style={{ color: 'var(--text-muted)', border: '1px solid var(--glass-border)' }}>Abort</button>
-                    <button type="submit" className="btn-primary">Compile Token</button>
+                    <button type="button" className="btn-outline" onClick={closeGenModal} style={{ color: 'var(--text-muted)', border: '1px solid var(--glass-border)' }}>Cancel</button>
+                    <button type="submit" className="btn-primary">Generate Key</button>
                   </div>
                 </form>
               </>
             ) : (
               <>
-                <h3 style={{ marginBottom: '0.5rem', color: '#34d399', fontSize: '1.5rem' }}>Token Deployed Successfully</h3>
+                <h3 style={{ marginBottom: '0.5rem', color: '#34d399', fontSize: '1.5rem' }}>API Key Created Successfully</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Below is your **Full API Key**. Copy it now; you will not be able to see it again. Note: The identifier in your list is just a tag, **not** the key.</p>
                 <p style={{ color: '#ff4d4f', fontSize: '0.95rem', marginBottom: '2rem', fontWeight: 'bold' }}>CRITICAL: Use the dot-separated string below in your x-api-key header.</p>
                 <div style={{ background: 'rgba(52, 211, 153, 0.05)', border: '1px dashed #34d399', padding: '1.5rem', borderRadius: '8px', marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <code style={{ color: '#34d399', wordBreak: 'break-all', fontSize: '1.2rem', fontWeight: 'bold' }}>{generatedKey.apiKey}</code>
                   <CopyButton text={generatedKey.apiKey} style={{ background: '#34d399', color: '#000', padding: '0.6rem', border: 'none' }} className="" />
                 </div>
-                <button className="btn-secondary" onClick={closeGenModal} style={{ width: '100%', padding: '1rem', fontFamily: 'var(--font-mono)' }}>Confirm Internal Storage Secured</button>
+                <button className="btn-secondary" onClick={closeGenModal} style={{ width: '100%', padding: '1rem' }}>I have saved the key</button>
               </>
             )}
           </div>

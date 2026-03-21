@@ -14,12 +14,12 @@ const TopBar = () => {
 
   return (
     <header style={{ height: '70px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Terminal size={14} color="var(--accent-secondary)" /> ~ / root / <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold' }}>{getPathName()}</span>
+      <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
+        Home / <span style={{ color: 'var(--accent-primary)', fontWeight: '600', textTransform: 'capitalize' }}>{getPathName()}</span>
       </div>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem 1rem', borderRadius: '6px', border: '1px solid var(--glass-border)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-          <span style={{ color: 'var(--accent-primary)' }}>sys.user:</span> <span>{user?.name}</span>
+      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', fontSize: '0.9rem' }}>
+          <span style={{ color: 'var(--text-muted)' }}>Welcome,</span> <span style={{ fontWeight: '600' }}>{user?.name}</span>
         </div>
         <button onClick={logout} style={{ color: 'var(--text-muted)', padding: '0.5rem' }} title="Terminate Session">
           <LogOut size={18} />

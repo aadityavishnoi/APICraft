@@ -86,10 +86,13 @@ const DashboardView = () => {
       {/* Recent Activity Feed */}
       <GlassCard>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h3>Live Activity Stream</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--accent-secondary)', fontFamily: 'var(--font-mono)' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-secondary)', animation: 'pulse 2s infinite' }}></div>
-            POLLING_10s
+          <div>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>Live Activity Stream</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Analyze your API ecosystem and tracking metrics.</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(52, 211, 153, 0.05)', padding: '0.6rem 1.2rem', borderRadius: '30px', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+            <div className="pulse" style={{ width: '8px', height: '8px', background: '#34d399', borderRadius: '50%' }}></div>
+            <span style={{ fontSize: '0.8rem', color: '#34d399', fontWeight: 'bold' }}>LIVE UPDATES</span>
           </div>
         </div>
         

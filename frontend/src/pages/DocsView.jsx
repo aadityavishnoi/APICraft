@@ -25,11 +25,11 @@ const DocsView = () => {
     fetchDocs();
   }, []);
 
-  const baseUrl = window.location.origin.replace(':5173', ':5000'); // Assuming backend on 5000
+  const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>[ INITIALIZING_DOCS_ENGINE... ]</div>
+      <div style={{ color: 'var(--accent-primary)' }}>Loading documentation...</div>
     </div>
   );
 
@@ -40,21 +40,21 @@ const DocsView = () => {
           <Book size={32} color="var(--accent-primary)" /> API Documentation
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
-          Real-time generated endpoints for your deployed collection pipelines.
+          Available endpoints for your custom data collections.
         </p>
       </header>
 
       {error ? (
         <GlassCard style={{ borderColor: 'rgba(255, 77, 79, 0.3)', background: 'rgba(255, 77, 79, 0.05)' }}>
-          <div style={{ color: '#ff4d4f', fontFamily: 'var(--font-mono)' }}>&gt; ERROR: {error}</div>
+          <div style={{ color: '#ff4d4f' }}>Error: {error}</div>
         </GlassCard>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {docs.length === 0 ? (
             <GlassCard style={{ textAlign: 'center', padding: '4rem' }}>
               <Terminal size={48} color="var(--text-muted)" style={{ margin: '0 auto 1.5rem', opacity: 0.3 }} />
-              <h3 style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>$ NO_COLLECTIONS_DEPLOYED</h3>
-              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Deploy your first cluster to generate documentation.</p>
+              <h3 style={{ color: 'var(--text-muted)' }}>No collections found</h3>
+              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Create your first collection to see the documentation here.</p>
             </GlassCard>
           ) : (
             docs.map((doc, idx) => (
@@ -62,7 +62,7 @@ const DocsView = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                   <div>
                     <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                      <Server size={28} color="var(--accent-primary)" /> /{doc.collection}
+                      <Server size={28} color="var(--accent-primary)" /> {doc.collection}
                     </h2>
                     <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                       {doc.fields.map((field, fIdx) => (
@@ -111,7 +111,7 @@ const DocsView = () => {
 
                 <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Code size={14} color="var(--accent-secondary)" /> CURL_REQUEST_EXAMPLE
+                    <Code size={14} color="var(--accent-secondary)" /> Example CURL Command
                   </div>
                   <pre style={{ 
                     background: '#000', 
@@ -123,7 +123,7 @@ const DocsView = () => {
                     color: '#fff',
                     fontFamily: 'var(--font-mono)'
                   }}>
-                    {`curl -X GET "${baseUrl}/api/${doc.collection}" \\\n  -H "Authorization: Bearer YOUR_JWT_TOKEN" \\\n  -H "Content-Type: application/json"`}
+                    {`curl -X ${method} "${baseUrl}/api/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
                   </pre>
                 </div>
               </GlassCard>

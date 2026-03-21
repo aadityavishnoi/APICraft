@@ -82,7 +82,7 @@ const CollectionsView = () => {
   };
 
   const filtered = collections.filter(c => c.collectionName.toLowerCase().includes(search.toLowerCase()));
-  const baseUrl = 'http://localhost:5500';
+  const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   return (
     <div style={{ display: 'flex', gap: '2rem', height: '100%' }}>
@@ -97,15 +97,15 @@ const CollectionsView = () => {
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
           <button onClick={() => { setActiveCol(null); setNewColName(''); setFields([{ id: `f${Date.now()}`, name: '', type: 'String', required: false }]); }}
                   style={{ width: '100%', padding: '1rem', marginBottom: '1rem', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', background: 'rgba(0,212,255,0.05)' }}>
-            <Plus size={16} /> Init Collection
+            <Plus size={16} /> New Collection
           </button>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {filtered.map(c => (
               <button key={c._id} onClick={() => setActiveCol(c)}
                       style={{ padding: '1rem', textAlign: 'left', background: activeCol?._id === c._id ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255,255,255,0.02)', border: '1px solid', borderColor: activeCol?._id === c._id ? 'var(--accent-primary)' : 'var(--glass-border)', borderRadius: '8px', color: 'var(--text-main)', display: 'block', width: '100%' }}>
-                <div style={{ fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>/{c.collectionName}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{c.fields.length} constraints</div>
+                <div style={{ fontWeight: 'bold' }}>/{c.collectionName}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{c.fields.length} fields</div>
               </button>
             ))}
             {filtered.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1rem', fontSize: '0.9rem' }}>No collections match search.</p>}
@@ -118,21 +118,21 @@ const CollectionsView = () => {
         {!activeCol ? (
           <GlassCard style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <h2 style={{ marginBottom: '1.5rem', fontFamily: 'var(--font-sans)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Server size={24} color="var(--accent-primary)" /> Deploy Schema
+              <Server size={24} color="var(--accent-primary)" /> Create Collection Schema
             </h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               <div style={{ marginBottom: '2rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>$ SYS.COLLECTION_SLUG</label>
+                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Collection Name (Slug)</label>
                 <input required type="text" placeholder="e.g. products" value={newColName} onChange={e => setNewColName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} style={{ fontSize: '1.2rem', padding: '1rem' }} />
-                <div style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', marginTop: '0.8rem', fontFamily: 'var(--font-mono)' }}>
-                  MOUNT_POINT: /api/{newColName || '...'}
+                <div style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', marginTop: '0.8rem' }}>
+                  Base Path: /api/{newColName || '...'}
                 </div>
               </div>
 
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                  <label style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>$ SYS.CONSTRAINTS</label>
-                  <button type="button" onClick={addField} style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '0.4rem 0.8rem', borderRadius: '4px' }}><Plus size={16} /> Add Node</button>
+                  <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Fields & Types</label>
+                  <button type="button" onClick={addField} style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '0.4rem 0.8rem', borderRadius: '4px' }}><Plus size={16} /> Add Field</button>
                 </div>
                 
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -146,7 +146,7 @@ const CollectionsView = () => {
 
               <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
                 <button type="submit" className="btn-primary" disabled={!newColName || fields.length === 0} style={{ padding: '1rem 2rem', fontSize: '1.1rem', width: '100%' }}>
-                  Compile & Deploy Pipeline
+                  Create Collection
                 </button>
               </div>
             </form>
@@ -159,14 +159,14 @@ const CollectionsView = () => {
                   <Server size={32} color="var(--accent-primary)" /> /{activeCol.collectionName}
                 </h2>
                 <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ color: 'var(--accent-secondary)', marginBottom: '0.5rem' }}>// compiled_constraints</div>
+                  <div style={{ color: 'var(--accent-secondary)', marginBottom: '0.5rem' }}>// schema_fields</div>
                   {activeCol.fields.join(' | ')}
                 </div>
               </div>
-              <button type="button" onClick={() => setDeleteTarget(activeCol)} className="btn-danger" style={{ background: 'rgba(255, 77, 79, 0.1)', color: '#ff4d4f', border: '1px solid rgba(255,77,79,0.3)', padding: '0.6rem 1rem' }}><Trash2 size={16} /> Destruct()</button>
+              <button type="button" onClick={() => setDeleteTarget(activeCol)} className="btn-danger" style={{ background: 'rgba(255, 77, 79, 0.1)', color: '#ff4d4f', border: '1px solid rgba(255,77,79,0.3)', padding: '0.6rem 1rem' }}><Trash2 size={16} /> Delete</button>
             </div>
 
-            <h3 style={{ marginBottom: '1.5rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>&gt; ENDPOINTS</h3>
+            <h3 style={{ marginBottom: '1.5rem', color: 'var(--accent-primary)' }}>Endpoints</h3>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
                 <thead>
@@ -206,7 +206,7 @@ const CollectionsView = () => {
       <ConfirmModal 
         isOpen={!!deleteTarget}
         title={`DELETE /${deleteTarget?.collectionName}`}
-        text="This will permanently delete this database pipeline and all underlying data. This action cannot be reversed."
+        text="This will permanently delete this collection and all underlying data. This action cannot be reversed."
         confirmText="Confirm Deletion"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}

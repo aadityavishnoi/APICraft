@@ -54,57 +54,81 @@ const SettingsView = () => {
   return (
     <div style={{ maxWidth: '800px', paddingBottom: '2rem' }}>
       <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>Engine Settings</h1>
-        <p style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>$ config --global user.core</p>
+        <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>Account Settings</h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Manage your profile and track your API usage.</p>
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         
         {/* Profile Settings */}
         <GlassCard>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)' }}>
-            <User size={20} /> Identity Config
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-primary)' }}>
+            <User size={20} /> Personal Information
           </h2>
           <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>$ SYS.NAME</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Full Name</label>
                 <input required type="text" value={profileData.name} onChange={e => setProfileData({...profileData, name: e.target.value})} />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>$ SYS.EMAIL</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Email Address</label>
                 <input required type="email" value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} />
               </div>
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>$ NEW_KEY (Leave blank to keep active)</label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>New Password (leave blank to keep current)</label>
               <input type="password" placeholder="••••••••" value={profileData.password} onChange={e => setProfileData({...profileData, password: e.target.value})} />
             </div>
             
             {msg && <div style={{ color: msg.includes('failed') ? '#ff4d4f' : '#34d399', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>&gt; {msg}</div>}
             
-            <button type="submit" disabled={loading} className="btn-secondary" style={{ alignSelf: 'flex-start', fontFamily: 'var(--font-mono)' }}>Compile Changes</button>
+            <button type="submit" disabled={loading} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Save Changes</button>
           </form>
         </GlassCard>
 
-        {/* System Settings */}
+        {/* Usage & Limits */}
         <GlassCard>
-           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', fontFamily: 'var(--font-mono)', color: 'var(--accent-secondary)' }}>
-            <Monitor size={20} /> Environment Variables
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-secondary)' }}>
+            <Activity size={20} /> Usage & Limits
           </h2>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ROOT_API_URL</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--glass-border)' }}>
-              <code style={{ color: 'var(--accent-secondary)', fontSize: '1rem' }}>{baseUrl}</code>
-              <CopyButton text={baseUrl} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Requests</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{user?.usageCount || 0}</div>
+            </div>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Monthly Limit</div>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{user?.usageLimit || 1000}</div>
             </div>
           </div>
-          
           <div style={{ marginTop: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>ENV_THEME (LOCKED)</label>
-            <button className="btn-secondary" disabled style={{ background: 'rgba(0,0,0,0.5)', borderColor: 'var(--glass-border)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              <Moon size={16} /> Dark Brutalism Core
-            </button>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between' }}>
+              <span>Utilization</span>
+              <span>{Math.round(((user?.usageCount || 0) / (user?.usageLimit || 1000)) * 100)}%</span>
+            </div>
+            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', 
+                background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))', 
+                width: `${Math.min(100, Math.round(((user?.usageCount || 0) / (user?.usageLimit || 1000)) * 100))}%`,
+                transition: 'width 1s ease-out'
+              }}></div>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* System & Connection */}
+        <GlassCard>
+           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-secondary)' }}>
+            <Monitor size={20} /> Connection Details
+          </h2>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>API Base URL</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--glass-border)' }}>
+              <code style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem' }}>{window.location.origin.replace(':5173', ':5000')}</code>
+              <CopyButton text={window.location.origin.replace(':5173', ':5000')} />
+            </div>
           </div>
         </GlassCard>
 
