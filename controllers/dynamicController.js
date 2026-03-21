@@ -18,11 +18,11 @@ const createData = async (req, res) => {
       });
     }
 
-    const allowedFields = config.fields;
+    const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
     const incomingFields = Object.keys(req.body);
 
     const invalidFields = incomingFields.filter(
-      field => !allowedFields.includes(field)
+      field => !allowedFieldNames.includes(field)
     );
 
     if (invalidFields.length > 0) {
@@ -112,11 +112,11 @@ const updateData = async (req, res) => {
     }
 
     // Field validation
-    const allowedFields = config.fields;
+    const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
     const incomingFields = Object.keys(req.body);
 
     const invalidFields = incomingFields.filter(
-      field => !allowedFields.includes(field)
+      field => !allowedFieldNames.includes(field)
     );
 
     if (invalidFields.length > 0) {
