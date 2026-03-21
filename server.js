@@ -38,15 +38,19 @@ try {
   console.warn("Swagger docs skipped:", err.message);
 }
 
-// ── Frontend static (only if built) ──────────────────────────
+// ── Frontend static ──────────────────────────────────────────
 const distPath = path.join(__dirname, "frontend", "dist");
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.use((req, res, next) => {
-    if (req.path.startsWith("/api")) return next();
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-}
+
+// Serve static files from the frontend/dist directory
+app.use(express.static(distPath));
+
+// SPA catch-all: serve index.html for any GET request that doesn't match a static file or API
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/api-docs")) {
+    return res.status(404).json({ message: "API endpoint not found" });
+  }
+  res.sendFile(path.join(distPath, "index.html"));
+});
 
 // ── Global error handler ──────────────────────────────────────
 app.use((err, req, res, next) => {
