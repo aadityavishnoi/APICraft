@@ -1,10 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
-import { GlassCard } from '../components/GlassCard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CopyButton } from '../components/CopyButton';
-import { User, AlertTriangle, Moon, Monitor, Activity } from 'lucide-react';
+import { User, ShieldAlert, Activity, Globe } from 'lucide-react';
 
 const SettingsView = () => {
   const { user, login, logout } = useContext(AuthContext);
@@ -42,9 +41,7 @@ const SettingsView = () => {
 
   const fetchProfile = async () => {
     try {
-      console.log('Fetching profile data...');
       const { data } = await api.get('/auth/profile');
-      console.log('Profile data received:', data);
       setProfileData({ name: data.name, email: data.email, password: '' });
       login(data, localStorage.getItem('token'));
     } catch (err) {
@@ -68,110 +65,132 @@ const SettingsView = () => {
   const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   return (
-    <div style={{ maxWidth: '800px', paddingBottom: '2rem' }}>
-      <header style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-sans)', letterSpacing: '-0.5px' }}>Account Settings</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Manage your profile and track your API usage.</p>
+    <div style={{ maxWidth: '800px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <header>
+        <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '0.4rem' }}>Settings</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+          Manage your account preferences and API environment.
+        </p>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Profile Settings */}
-        <GlassCard>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-primary)' }}>
-            <User size={20} /> Personal Information
-          </h2>
+        <div className="card" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '2rem' }}>
+            <div style={{ color: 'var(--blue)' }}><User size={20} /></div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Profile Information</h2>
+          </div>
           <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Full Name</label>
+                <label>Full Name</label>
                 <input required type="text" value={profileData.name} onChange={e => setProfileData({...profileData, name: e.target.value})} />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Email Address</label>
+                <label>Email Address</label>
                 <input required type="email" value={profileData.email} onChange={e => setProfileData({...profileData, email: e.target.value})} />
               </div>
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>New Password (leave blank to keep current)</label>
-              <input type="password" placeholder="••••••••" value={profileData.password} onChange={e => setProfileData({...profileData, password: e.target.value})} />
+              <label>New Password</label>
+              <input type="password" placeholder="Leave blank to keep current" value={profileData.password} onChange={e => setProfileData({...profileData, password: e.target.value})} />
             </div>
             
-            {msg && <div style={{ color: msg.includes('failed') ? '#ff4d4f' : '#34d399', fontSize: '0.9rem', fontFamily: 'var(--font-mono)' }}>&gt; {msg}</div>}
+            {msg && (
+              <div style={{ 
+                padding: '0.8rem', 
+                borderRadius: '6px', 
+                fontSize: '0.9rem',
+                background: msg.includes('failed') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                color: msg.includes('failed') ? 'var(--error)' : 'var(--success)',
+                border: `1px solid ${msg.includes('failed') ? 'var(--error)' : 'var(--success)'}22`
+              }}>
+                {msg}
+              </div>
+            )}
             
-            <button type="submit" disabled={loading} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>Save Changes</button>
+            <button type="submit" disabled={loading} className="btn-primary" style={{ alignSelf: 'flex-start' }}>
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
           </form>
-        </GlassCard>
+        </div>
 
         {/* Usage & Limits */}
-        <GlassCard>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-secondary)' }}>
-            <Activity size={20} /> Usage & Limits
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Total Requests</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-primary)' }}>{user?.usageCount !== undefined ? user.usageCount : '...'}</div>
+        <div className="card" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '2rem' }}>
+            <div style={{ color: 'var(--success)' }}><Activity size={20} /></div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Usage & Limits</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+            <div className="card" style={{ padding: '1.2rem', background: 'var(--bg-secondary)', borderStyle: 'dashed' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Monthly Requests</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{user?.usageCount?.toLocaleString() || '0'}</div>
             </div>
-            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Monthly Limit</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{user?.usageLimit !== undefined ? user.usageLimit : '...'}</div>
+            <div className="card" style={{ padding: '1.2rem', background: 'var(--bg-secondary)', borderStyle: 'dashed' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Quota Limit</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{user?.usageLimit?.toLocaleString() || '0'}</div>
             </div>
           </div>
-          <div style={{ marginTop: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between' }}>
               <span>Utilization</span>
-              <span>{user?.usageCount !== undefined && user?.usageLimit !== undefined ? Math.round((user.usageCount / user.usageLimit) * 100) : '...'}%</span>
+              <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                {user?.usageCount !== undefined && user?.usageLimit !== undefined ? Math.round((user.usageCount / user.usageLimit) * 100) : '0'}%
+              </span>
             </div>
-            <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ 
                 height: '100%', 
-                background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))', 
+                background: 'var(--accent)', 
                 width: `${user?.usageCount !== undefined && user?.usageLimit !== undefined ? Math.min(100, Math.round((user.usageCount / user.usageLimit) * 100)) : 0}%`,
-                transition: 'width 1s ease-out'
+                transition: 'width 0.6s ease-out'
               }}></div>
             </div>
           </div>
-        </GlassCard>
+        </div>
 
-        {/* System & Connection */}
-        <GlassCard>
-           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem', fontSize: '1.2rem', color: 'var(--accent-secondary)' }}>
-            <Monitor size={20} /> Connection Details
-          </h2>
+        {/* Webhook & Connection */}
+        <div className="card" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '2rem' }}>
+            <div style={{ color: 'var(--text-secondary)' }}><Globe size={20} /></div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '600' }}>Environment</h2>
+          </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>API Base URL</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--glass-border)' }}>
-              <code style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem' }}>{baseUrl}</code>
+            <label>API Base URL</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--bg-secondary)', padding: '0.8rem 1rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+              <code className="mono" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', flex: 1 }}>{baseUrl}</code>
               <CopyButton text={baseUrl} />
             </div>
           </div>
-        </GlassCard>
+        </div>
 
         {/* Danger Zone */}
-        <GlassCard style={{ border: '1px solid rgba(255, 77, 79, 0.3)', background: 'rgba(255, 77, 79, 0.02)' }}>
-          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem', fontSize: '1.2rem', fontFamily: 'var(--font-mono)', color: '#ff4d4f' }}>
-            <AlertTriangle size={20} /> Core Destruct
-          </h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: 1.6 }}>
-            Shutting down your core will permanently purge all schemas, keys, logs, and account identity.
+        <div className="card" style={{ padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.02)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem' }}>
+            <div style={{ color: 'var(--error)' }}><ShieldAlert size={20} /></div>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--error)' }}>Danger Zone</h2>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Deleting your account will permanently remove all your collections, API keys, and logs. This action cannot be undone.
           </p>
-          <button className="btn-danger" onClick={() => setDeleteOpen(true)} style={{ background: 'rgba(255,77,79,0.1)', color: '#ff4d4f', border: '1px solid rgba(255,77,79,0.3)', padding: '0.8rem 1.5rem', fontFamily: 'var(--font-mono)' }}>
-            Initiate Overload Sequence
+          <button className="btn-danger" onClick={() => setDeleteOpen(true)}>
+            Delete Account
           </button>
-        </GlassCard>
+        </div>
 
       </div>
 
       <ConfirmModal 
         isOpen={deleteOpen}
-        title="SYSTEM PURGE PROTOCOL"
-        text="CRITICAL WARNING: You are about to format your entire APICraft instance. All dynamic collections, stored logs, API tokens, and credentials will be irretrievably destroyed. Execute purge?"
-        confirmText="Confirm Destruct()"
+        title="Delete Account"
+        text="Are you sure you want to delete your account? All your data will be permanently erased. This action is irreversible."
+        confirmText="Yes, delete my account"
         onConfirm={handleDeleteAccount}
         onCancel={() => setDeleteOpen(false)}
       />
     </div>
   );
 };
+
 export default SettingsView;

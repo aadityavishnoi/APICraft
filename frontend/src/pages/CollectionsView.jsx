@@ -6,23 +6,60 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { CopyButton } from '../components/CopyButton';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { GlassCard } from '../components/GlassCard';
 
 const SortableField = ({ id, field, updateField, removeField }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-  const style = { transform: CSS.Transform.toString(transform), transition, display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '6px', border: '1px solid var(--glass-border)', marginBottom: '0.5rem' };
+  const style = { 
+    transform: CSS.Transform.toString(transform), 
+    transition, 
+    display: 'flex', 
+    gap: '0.8rem', 
+    alignItems: 'center', 
+    background: 'var(--bg-secondary)', 
+    padding: '0.6rem 0.8rem', 
+    borderRadius: 'var(--radius-sm)', 
+    border: '1px solid var(--border)', 
+    marginBottom: '0.5rem' 
+  };
   
   return (
     <div ref={setNodeRef} style={style}>
-      <div {...attributes} {...listeners} style={{ cursor: 'grab', color: 'var(--text-muted)' }}><GripVertical size={18} /></div>
-      <input type="text" placeholder="Field Name" value={field.name} onChange={e => updateField(id, 'name', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
-      <select value={field.type} onChange={e => updateField(id, 'type', e.target.value)} style={{ width: '120px', padding: '0.5rem' }}>
-        <option value="String">String</option><option value="Number">Number</option><option value="Boolean">Boolean</option><option value="Date">Date</option><option value="Array">Array</option>
+      <div {...attributes} {...listeners} style={{ cursor: 'grab', color: 'var(--text-muted)' }}><GripVertical size={16} /></div>
+      <input 
+        type="text" 
+        placeholder="Field Name" 
+        value={field.name} 
+        onChange={e => updateField(id, 'name', e.target.value)} 
+        style={{ flex: 1, padding: '0.4rem 0.6rem' }} 
+      />
+      <select 
+        value={field.type} 
+        onChange={e => updateField(id, 'type', e.target.value)} 
+        style={{ width: '110px', padding: '0.4rem 0.6rem' }}
+      >
+        <option value="String">String</option>
+        <option value="Number">Number</option>
+        <option value="Boolean">Boolean</option>
+        <option value="Date">Date</option>
+        <option value="Array">Array</option>
       </select>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        <input type="checkbox" checked={field.required} onChange={e => updateField(id, 'required', e.target.checked)} style={{ width: 'auto' }} />Req
+      <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: 0, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        <input 
+          type="checkbox" 
+          checked={field.required} 
+          onChange={e => updateField(id, 'required', e.target.checked)} 
+          style={{ width: '14px', height: '14px', margin: 0 }} 
+        />
+        Required
       </label>
-      <button type="button" onClick={() => removeField(id)} style={{ color: '#ff4d4f', padding: '0.4rem', background: 'transparent', border: 'none' }}><Trash2 size={18} /></button>
+      <button 
+        type="button" 
+        className="btn-ghost"
+        onClick={() => removeField(id)} 
+        style={{ color: 'var(--error)', padding: '0.4rem' }}
+      >
+        <Trash2 size={16} />
+      </button>
     </div>
   );
 };
@@ -85,30 +122,45 @@ const CollectionsView = () => {
   const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   return (
-    <div style={{ display: 'flex', gap: '2rem', height: '100%' }}>
+    <div style={{ display: 'flex', gap: '1.5rem', height: '100%' }}>
       {/* Left List */}
-      <div className="glass-card" style={{ width: '320px', display: 'flex', flexDirection: 'column', padding: 0 }}>
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--glass-border)' }}>
+      <div className="card" style={{ width: '280px', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+        <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>
           <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', top: '12px', left: '12px', color: 'var(--text-muted)' }} />
-            <input type="text" placeholder="Search schemas..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: '2.5rem' }} />
+            <Search size={14} style={{ position: 'absolute', top: '10px', left: '10px', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
+              placeholder="Filter..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ paddingLeft: '2.2rem', fontSize: '0.85rem' }} 
+            />
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-          <button onClick={() => { setActiveCol(null); setNewColName(''); setFields([{ id: `f${Date.now()}`, name: '', type: 'String', required: false }]); }}
-                  style={{ width: '100%', padding: '1rem', marginBottom: '1rem', border: '1px dashed var(--accent-primary)', color: 'var(--accent-primary)', borderRadius: '8px', background: 'rgba(0,212,255,0.05)' }}>
-            <Plus size={16} /> New Collection
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
+          <button 
+            onClick={() => { setActiveCol(null); setNewColName(''); setFields([{ id: `f1`, name: '', type: 'String', required: false }]); }}
+            className="btn-secondary"
+            style={{ width: '100%', justifyContent: 'flex-start', marginBottom: '0.5rem', fontSize: '0.85rem' }}
+          >
+            <Plus size={14} /> New Collection
           </button>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {filtered.map(c => (
-              <button key={c._id} onClick={() => setActiveCol(c)}
-                      style={{ padding: '1rem', textAlign: 'left', background: activeCol?._id === c._id ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255,255,255,0.02)', border: '1px solid', borderColor: activeCol?._id === c._id ? 'var(--accent-primary)' : 'var(--glass-border)', borderRadius: '8px', color: 'var(--text-main)', display: 'block', width: '100%' }}>
-                <div style={{ fontWeight: 'bold' }}>/{c.collectionName}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{c.fields.length} fields</div>
+              <button 
+                key={c._id} 
+                onClick={() => setActiveCol(c)}
+                className={`nav-link ${activeCol?._id === c._id ? 'active' : ''}`}
+                style={{ justifyContent: 'space-between', width: '100%' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <Server size={14} />
+                  <span>{c.collectionName}</span>
+                </div>
+                <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{c.fields.length}</span>
               </button>
             ))}
-            {filtered.length === 0 && <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '1rem', fontSize: '0.9rem' }}>No collections match search.</p>}
           </div>
         </div>
       </div>
@@ -116,23 +168,29 @@ const CollectionsView = () => {
       {/* Right Detail / Form */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {!activeCol ? (
-          <GlassCard style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h2 style={{ marginBottom: '1.5rem', fontFamily: 'var(--font-sans)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Server size={24} color="var(--accent-primary)" /> Create Collection Schema
-            </h2>
+          <div className="card" style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: '600', marginBottom: '2rem' }}>Create Collection</h2>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <div style={{ marginBottom: '2rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Collection Name (Slug)</label>
-                <input required type="text" placeholder="e.g. products" value={newColName} onChange={e => setNewColName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} style={{ fontSize: '1.2rem', padding: '1rem' }} />
-                <div style={{ fontSize: '0.85rem', color: 'var(--accent-secondary)', marginTop: '0.8rem' }}>
-                  Base Path: /api/{newColName || '...'}
-                </div>
+              <div style={{ marginBottom: '2rem', maxWidth: '400px' }}>
+                <label>Collection ID</label>
+                <input 
+                  required 
+                  type="text" 
+                  placeholder="e.g. products, blog_posts" 
+                  value={newColName} 
+                  onChange={e => setNewColName(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} 
+                />
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  Endpoints will be generated at <span className="mono">/api/{newColName || '...'}</span>
+                </p>
               </div>
 
               <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                  <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Fields & Types</label>
-                  <button type="button" onClick={addField} style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)', padding: '0.4rem 0.8rem', borderRadius: '4px' }}><Plus size={16} /> Add Field</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Fields</h3>
+                  <button type="button" onClick={addField} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                    <Plus size={14} /> Add Field
+                  </button>
                 </div>
                 
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -144,53 +202,74 @@ const CollectionsView = () => {
                 </DndContext>
               </div>
 
-              <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
-                <button type="submit" className="btn-primary" disabled={!newColName || fields.length === 0} style={{ padding: '1rem 2rem', fontSize: '1.1rem', width: '100%' }}>
+              <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+                <button 
+                  type="submit" 
+                  className="btn-primary" 
+                  disabled={!newColName || fields.length === 0} 
+                  style={{ padding: '0.8rem 2rem' }}
+                >
                   Create Collection
                 </button>
               </div>
             </form>
-          </GlassCard>
+          </div>
         ) : (
-          <GlassCard style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', paddingBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
+          <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '2rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h2 style={{ fontSize: '2.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem', fontFamily: 'var(--font-mono)' }}>
-                  <Server size={32} color="var(--accent-primary)" /> /{activeCol.collectionName}
+                <h2 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  /{activeCol.collectionName}
                 </h2>
-                <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ color: 'var(--accent-secondary)', marginBottom: '0.5rem' }}>// schema_fields</div>
-                  {activeCol.fields.join(' | ')}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {activeCol.fields.map((f, idx) => (
+                    <span key={idx} className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                      {f}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <button type="button" onClick={() => setDeleteTarget(activeCol)} className="btn-danger" style={{ background: 'rgba(255, 77, 79, 0.1)', color: '#ff4d4f', border: '1px solid rgba(255,77,79,0.3)', padding: '0.6rem 1rem' }}><Trash2 size={16} /> Delete</button>
+              <button 
+                type="button" 
+                onClick={() => setDeleteTarget(activeCol)} 
+                className="btn-danger" 
+                style={{ fontSize: '0.85rem' }}
+              >
+                <Trash2 size={16} /> Delete
+              </button>
             </div>
 
-            <h3 style={{ marginBottom: '1.5rem', color: 'var(--accent-primary)' }}>Endpoints</h3>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
+            <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Available Endpoints</h3>
+              <table>
                 <thead>
-                  <tr style={{ color: 'var(--text-muted)', textAlign: 'left', borderBottom: '1px solid var(--glass-border)' }}>
-                    <th style={{ padding: '1rem 0' }}>Method</th>
+                  <tr>
+                    <th>Method</th>
                     <th>Endpoint</th>
-                    <th>Description</th>
+                    <th>Action</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { m: 'GET', e: `/api/${activeCol.collectionName}`, d: 'Get all docs' },
-                    { m: 'POST', e: `/api/${activeCol.collectionName}`, d: 'Create document' },
-                    { m: 'GET', e: `/api/${activeCol.collectionName}/:id`, d: 'Get by ID' },
-                    { m: 'PUT', e: `/api/${activeCol.collectionName}/:id`, d: 'Update by ID' },
-                    { m: 'DELETE', e: `/api/${activeCol.collectionName}/:id`, d: 'Delete by ID' }
+                    { m: 'GET', e: `/api/${activeCol.collectionName}`, a: 'Fetch all' },
+                    { m: 'POST', e: `/api/${activeCol.collectionName}`, a: 'Create new' },
+                    { m: 'GET', e: `/api/${activeCol.collectionName}/:id`, a: 'Fetch single' },
+                    { m: 'PUT', e: `/api/${activeCol.collectionName}/:id`, a: 'Update existing' },
+                    { m: 'DELETE', e: `/api/${activeCol.collectionName}/:id`, a: 'Delete' }
                   ].map((row, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                      <td style={{ padding: '1.2rem 0' }}>
-                        <span style={{ color: row.m==='GET'?'#00D4FF':row.m==='POST'?'#34d399':row.m==='PUT'?'#fbbf24':'#ff4d4f', fontWeight: 'bold' }}>{row.m}</span>
+                    <tr key={i}>
+                      <td>
+                        <span className={`badge ${
+                          row.m === 'GET' ? 'badge-blue' : 
+                          row.m === 'POST' ? 'badge-green' : 
+                          'badge-red'
+                        }`}>
+                          {row.m}
+                        </span>
                       </td>
-                      <td style={{ color: 'var(--text-main)' }}>{row.e}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>{row.d}</td>
+                      <td className="mono" style={{ color: 'var(--text-secondary)' }}>{row.e}</td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{row.a}</td>
                       <td style={{ textAlign: 'right' }}>
                         <CopyButton text={`${baseUrl}${row.e}`} />
                       </td>
@@ -199,19 +278,20 @@ const CollectionsView = () => {
                 </tbody>
               </table>
             </div>
-          </GlassCard>
+          </div>
         )}
       </div>
 
       <ConfirmModal 
         isOpen={!!deleteTarget}
-        title={`DELETE /${deleteTarget?.collectionName}`}
-        text="This will permanently delete this collection and all underlying data. This action cannot be reversed."
-        confirmText="Confirm Deletion"
+        title="Confirm Deletion"
+        text={`Are you sure you want to delete the "${deleteTarget?.collectionName}" collection? This will permanently erase all associated data.`}
+        confirmText="Delete Collection"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
     </div>
   );
 };
+
 export default CollectionsView;

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { GlassCard } from '../components/GlassCard';
 import { CopyButton } from '../components/CopyButton';
-import { Book, Server, Terminal, Code } from 'lucide-react';
+import { Book, Server, Terminal, Code, ChevronRight } from 'lucide-react';
 
 const DocsView = () => {
   const [docs, setDocs] = useState([]);
@@ -28,45 +27,47 @@ const DocsView = () => {
   const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-      <div style={{ color: 'var(--accent-primary)' }}>Loading documentation...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px' }}>
+      <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+        <div className="spin"><Server size={18} /></div>
+        <span>Indexing documentation...</span>
+      </div>
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <header>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <Book size={32} color="var(--accent-primary)" /> API Documentation
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
-          Available endpoints for your custom data collections.
+        <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '0.4rem' }}>Documentation</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+          Reference and integration guides for your API collections.
         </p>
       </header>
 
       {error ? (
-        <GlassCard style={{ borderColor: 'rgba(255, 77, 79, 0.3)', background: 'rgba(255, 77, 79, 0.05)' }}>
-          <div style={{ color: '#ff4d4f' }}>Error: {error}</div>
-        </GlassCard>
+        <div className="card" style={{ border: '1px solid var(--error)', background: 'rgba(239, 68, 68, 0.05)', padding: '1.5rem' }}>
+          <div style={{ color: 'var(--error)' }}>{error}</div>
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {docs.length === 0 ? (
-            <GlassCard style={{ textAlign: 'center', padding: '4rem' }}>
-              <Terminal size={48} color="var(--text-muted)" style={{ margin: '0 auto 1.5rem', opacity: 0.3 }} />
-              <h3 style={{ color: 'var(--text-muted)' }}>No collections found</h3>
-              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Create your first collection to see the documentation here.</p>
-            </GlassCard>
+            <div className="card" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+              <Terminal size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--border)' }} />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '0.5rem' }}>No collections found</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Create a collection to automatically generate documentation.</p>
+            </div>
           ) : (
             docs.map((doc, idx) => (
-              <GlassCard key={idx} style={{ padding: '2.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+              <div key={idx} className="card" style={{ padding: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                   <div>
-                    <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                      <Server size={28} color="var(--accent-primary)" /> {doc.collection}
-                    </h2>
-                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.6rem' }}>
+                      <div style={{ color: 'var(--accent)' }}><Server size={22} /></div>
+                      <h2 style={{ fontSize: '1.4rem', fontWeight: '700' }}>/{doc.collection}</h2>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {doc.fields.map((field, fIdx) => (
-                        <span key={fIdx} style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', border: '1px solid var(--glass-border)', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        <span key={fIdx} className="mono" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: 'var(--bg-secondary)', borderRadius: '4px', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
                           {field}
                         </span>
                       ))}
@@ -74,34 +75,31 @@ const DocsView = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    Endpoints <ChevronRight size={14} />
+                  </h3>
                   {Object.entries(doc.endpoints).map(([action, endpoint], eIdx) => {
                     const [method, path] = endpoint.split(' ');
                     const fullUrl = `${baseUrl}${path}`;
 
                     return (
-                      <div key={eIdx} style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
-                          <span style={{
-                            minWidth: '70px',
-                            textAlign: 'center',
-                            padding: '0.4rem 0.8rem',
-                            borderRadius: '4px',
-                            fontSize: '0.85rem',
-                            fontWeight: 'bold',
-                            fontFamily: 'var(--font-mono)',
-                            background: method === 'GET' ? 'rgba(0, 212, 255, 0.1)' : method === 'POST' ? 'rgba(52, 211, 153, 0.1)' : method === 'PUT' ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255, 77, 79, 0.1)',
-                            color: method === 'GET' ? '#00D4FF' : method === 'POST' ? '#34d399' : method === 'PUT' ? '#fbbf24' : '#ff4d4f',
-                            border: `1px solid ${method === 'GET' ? 'rgba(0, 212, 255, 0.2)' : method === 'POST' ? 'rgba(52, 211, 153, 0.2)' : method === 'PUT' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(255, 77, 79, 0.2)'}`
-                          }}>
+                      <div key={eIdx} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', flex: 1 }}>
+                          <span className={`badge ${
+                            method === 'GET' ? 'badge-blue' : 
+                            method === 'POST' ? 'badge-green' : 
+                            method === 'PUT' ? 'badge-amber' : 
+                            'badge-red'
+                          }`} style={{ minWidth: '60px', textAlign: 'center' }}>
                             {method}
                           </span>
-                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.95rem', color: 'var(--text-main)', wordBreak: 'break-all' }}>
+                          <span className="mono" style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: '500' }}>
                             {path}
-                          </div>
+                          </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>{action}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase' }}>{action}</span>
                           <CopyButton text={fullUrl} />
                         </div>
                       </div>
@@ -109,24 +107,24 @@ const DocsView = () => {
                   })}
                 </div>
 
-                <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid var(--glass-border)' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <Code size={14} color="var(--accent-secondary)" /> Example CURL Command
+                <div style={{ background: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', overflow: 'hidden' }}>
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <Code size={14} style={{ color: 'var(--text-muted)' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)' }}>Example Request</span>
                   </div>
-                  <pre style={{
-                    background: '#000',
-                    padding: '1.2rem',
-                    borderRadius: '8px',
-                    fontSize: '0.9rem',
-                    overflowX: 'auto',
-                    border: '1px solid var(--glass-border)',
-                    color: '#fff',
-                    fontFamily: 'var(--font-mono)'
-                  }}>
-                    {`curl -X GET "${baseUrl}/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
-                  </pre>
+                  <div style={{ padding: '1.25rem', position: 'relative' }}>
+                    <pre className="mono" style={{
+                      fontSize: '0.85rem',
+                      lineHeight: '1.6',
+                      color: 'var(--text-primary)',
+                      overflowX: 'auto',
+                      whiteSpace: 'pre-wrap'
+                    }}>
+                      {`curl -X GET "${baseUrl}/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
+                    </pre>
+                  </div>
                 </div>
-              </GlassCard>
+              </div>
             ))
           )}
         </div>

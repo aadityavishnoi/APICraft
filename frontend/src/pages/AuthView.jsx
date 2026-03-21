@@ -30,103 +30,125 @@ const AuthView = () => {
       
       if (mode === 'signup') {
         setMode('login');
-        setError('success:Account created! System ready for login.');
+        setError('success:Account created! You can now sign in.');
       } else {
         login(data.user, data.token);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication sequence failed');
+      setError(err.response?.data?.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', background: 'var(--bg-deep)' }}>
-      {/* Left Animated Panel */}
-      <div className="auth-left" style={{ flex: 1, borderRight: '1px solid var(--glass-border)', position: 'relative', overflow: 'hidden', padding: '4rem', display: 'flex', flexDirection: 'column', background: 'radial-gradient(circle at center, rgba(123, 47, 255, 0.05) 0%, transparent 60%)' }}>
-        <h1 style={{ fontSize: '3rem', color: 'var(--text-main)', zIndex: 10 }}>
-          <span style={{ color: 'var(--accent-primary)' }}>API</span>Craft<span style={{ color: 'var(--accent-secondary)' }}>_</span>
-        </h1>
-        <p style={{ marginTop: '1rem', color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '400px', lineHeight: 1.6, zIndex: 10 }}>
-          The brutalist Backend-as-a-Service. Visually design collections and deploy production-ready REST APIs in milliseconds.
-        </p>
-
-        {/* Floating Cards */}
-        <div style={{ position: 'absolute', top: '40%', left: '10%', animation: 'float 12s infinite ease-in-out', zIndex: 1 }}>
-          <div className="glass-card" style={{ padding: '1rem 2rem', borderLeft: '3px solid var(--accent-primary)' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-primary)', fontWeight: 'bold' }}>GET /api/products</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>{`{ "status": 200, "data": [...] }`}</div>
-          </div>
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      width: '100vw', 
+      height: '100vh', 
+      background: 'var(--bg-primary)',
+      padding: '1rem'
+    }}>
+      <div className="card" style={{ 
+        width: '100%', 
+        maxWidth: '400px', 
+        padding: '2.5rem',
+        background: 'var(--bg-card)',
+        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            APICraft
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+            {mode === 'login' ? 'Sign in to your account' : 'Create your account to get started'}
+          </p>
         </div>
-        
-        <div style={{ position: 'absolute', top: '60%', left: '30%', animation: 'float 15s infinite ease-in-out reverse', zIndex: 1 }}>
-          <div className="glass-card" style={{ padding: '1rem 2rem', borderLeft: '3px solid #34d399' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', color: '#34d399', fontWeight: 'bold' }}>POST /api/users</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>{`{ "message": "created" }`}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Form Panel */}
-      <div className="auth-right" style={{ flex: '0 0 500px', padding: '4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'rgba(255,255,255,0.01)' }}>
-        <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>{mode === 'login' ? 'Account Login' : 'Create Account'}</h2>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>
-          {mode === 'login' ? 'Enter your details to access your dashboard.' : 'Start building your API ecosystem today.'}
-        </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           {mode === 'signup' && (
             <div>
-              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Full Name</label>
-              <input type="text" required placeholder="User name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+              <label>Full Name</label>
+              <input 
+                type="text" 
+                required 
+                placeholder="Name" 
+                value={formData.name} 
+                onChange={e => setFormData({...formData, name: e.target.value})} 
+              />
             </div>
           )}
           <div>
-            <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Email Address</label>
-            <input type="email" required placeholder="Email address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+            <label>Email Address</label>
+            <input 
+              type="email" 
+              required 
+              placeholder="name@company.com" 
+              value={formData.email} 
+              onChange={e => setFormData({...formData, email: e.target.value})} 
+            />
           </div>
           <div>
-            <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Password</label>
-            <input type="password" required placeholder="Password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <label style={{ marginBottom: 0 }}>Password</label>
+              {mode === 'login' && (
+                <button type="button" className="btn-ghost" style={{ fontSize: '0.75rem', padding: 0 }}>
+                  Forgot password?
+                </button>
+              )}
+            </div>
+            <input 
+              type="password" 
+              required 
+              placeholder="••••••••" 
+              value={formData.password} 
+              onChange={e => setFormData({...formData, password: e.target.value})} 
+            />
           </div>
           {mode === 'signup' && (
             <div>
-              <label style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem', display: 'block' }}>Confirm Password</label>
-              <input type="password" required placeholder="Verify password" value={formData.confirm} onChange={e => setFormData({...formData, confirm: e.target.value})} />
+              <label>Confirm Password</label>
+              <input 
+                type="password" 
+                required 
+                placeholder="••••••••" 
+                value={formData.confirm} 
+                onChange={e => setFormData({...formData, confirm: e.target.value})} 
+              />
             </div>
           )}
 
           {error && (
-            <div className="error-shake" style={{ color: error.startsWith('success:') ? '#34d399' : '#ff4d4f' }}>
-              &gt; {error.replace('success:', '')}
+            <div style={{ 
+              color: error.startsWith('success:') ? 'var(--success)' : 'var(--error)', 
+              fontSize: '0.85rem',
+              marginTop: '0.5rem',
+              textAlign: 'center'
+            }}>
+              {error.replace('success:', '')}
             </div>
           )}
 
-          <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem', padding: '1rem', width: '100%', justifyContent: 'space-between' }}>
-            {loading ? 'Please wait...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
-            <ArrowRight size={18} />
+          <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '0.5rem', padding: '0.8rem' }}>
+            {loading ? 'Processing...' : (mode === 'login' ? 'Sign in' : 'Create account')}
           </button>
         </form>
 
-        <div style={{ marginTop: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          <button type="button" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', textDecoration: 'underline', padding: 0 }}>
-            {mode === 'login' ? "Don't have an account? Sign up." : "Already have an account? Log in."}
+        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+          <button 
+            type="button" 
+            className="btn-ghost"
+            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }} 
+            style={{ fontSize: '0.85rem' }}
+          >
+            {mode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
         </div>
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0); }
-          50% { transform: translateY(-30px) rotate(2deg); }
-        }
-        @media (max-width: 900px) {
-          .auth-left { display: none !important; }
-          .auth-right { flex: 1 !important; }
-        }
-      `}</style>
     </div>
   );
 };
+
 export default AuthView;
