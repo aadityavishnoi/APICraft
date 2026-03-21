@@ -78,17 +78,17 @@ const DocsView = () => {
                   {Object.entries(doc.endpoints).map(([action, endpoint], eIdx) => {
                     const [method, path] = endpoint.split(' ');
                     const fullUrl = `${baseUrl}${path}`;
-                    
+
                     return (
                       <div key={eIdx} style={{ background: 'rgba(255,255,255,0.01)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1 }}>
-                          <span style={{ 
+                          <span style={{
                             minWidth: '70px',
                             textAlign: 'center',
-                            padding: '0.4rem 0.8rem', 
-                            borderRadius: '4px', 
-                            fontSize: '0.85rem', 
-                            fontWeight: 'bold', 
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '4px',
+                            fontSize: '0.85rem',
+                            fontWeight: 'bold',
                             fontFamily: 'var(--font-mono)',
                             background: method === 'GET' ? 'rgba(0, 212, 255, 0.1)' : method === 'POST' ? 'rgba(52, 211, 153, 0.1)' : method === 'PUT' ? 'rgba(251, 191, 36, 0.1)' : 'rgba(255, 77, 79, 0.1)',
                             color: method === 'GET' ? '#00D4FF' : method === 'POST' ? '#34d399' : method === 'PUT' ? '#fbbf24' : '#ff4d4f',
@@ -113,17 +113,17 @@ const DocsView = () => {
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <Code size={14} color="var(--accent-secondary)" /> Example CURL Command
                   </div>
-                  <pre style={{ 
-                    background: '#000', 
-                    padding: '1.2rem', 
-                    borderRadius: '8px', 
-                    fontSize: '0.9rem', 
-                    overflowX: 'auto', 
+                  <pre style={{
+                    background: '#000',
+                    padding: '1.2rem',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    overflowX: 'auto',
                     border: '1px solid var(--glass-border)',
                     color: '#fff',
                     fontFamily: 'var(--font-mono)'
                   }}>
-                    {`curl -X GET "${baseUrl}/api/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
+                    {`curl -X GET "${baseUrl}/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
                   </pre>
                 </div>
               </GlassCard>
