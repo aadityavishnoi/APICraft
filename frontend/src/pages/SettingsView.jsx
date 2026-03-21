@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { GlassCard } from '../components/GlassCard';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CopyButton } from '../components/CopyButton';
-import { User, AlertTriangle, Moon, Monitor } from 'lucide-react';
+import { User, AlertTriangle, Moon, Monitor, Activity } from 'lucide-react';
 
 const SettingsView = () => {
   const { user, login, logout } = useContext(AuthContext);
@@ -49,7 +49,7 @@ const SettingsView = () => {
     }
   };
 
-  const baseUrl = `http://localhost:5500/api`;
+  const baseUrl = import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5000');
 
   return (
     <div style={{ maxWidth: '800px', paddingBottom: '2rem' }}>
@@ -126,8 +126,8 @@ const SettingsView = () => {
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>API Base URL</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--glass-border)' }}>
-              <code style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem' }}>{window.location.origin.replace(':5173', ':5000')}</code>
-              <CopyButton text={window.location.origin.replace(':5173', ':5000')} />
+              <code style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem' }}>{baseUrl}</code>
+              <CopyButton text={baseUrl} />
             </div>
           </div>
         </GlassCard>

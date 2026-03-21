@@ -123,7 +123,7 @@ const DocsView = () => {
                     color: '#fff',
                     fontFamily: 'var(--font-mono)'
                   }}>
-                    {`curl -X ${method} "${baseUrl}/api/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
+                    {`curl -X GET "${baseUrl}/api/${doc.collection}" \\\n  -H "x-api-key: YOUR_API_KEY" \\\n  -H "Content-Type: application/json"`}
                   </pre>
                 </div>
               </GlassCard>
