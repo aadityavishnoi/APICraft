@@ -98,13 +98,11 @@ const ApiKeysView = () => {
               </div>
             </div>
 
+            <div style={{ marginBottom: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>IDENTIFIER_TAG:</div>
             <div style={{ background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1rem', color: k.revoked ? 'var(--text-muted)' : 'var(--accent-secondary)', textDecoration: k.revoked ? 'line-through' : 'none', letterSpacing: '1px' }}>
-                {visibleKeys[k.id] ? k.id : maskKey(k.id)}
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: k.revoked ? 'line-through' : 'none' }}>
+                {k.id}
               </span>
-              <button className="btn-icon" onClick={() => setVisibleKeys({...visibleKeys, [k.id]: !visibleKeys[k.id]})} title="Toggle Visibility ID" style={{ color: 'var(--text-muted)' }}>
-                {visibleKeys[k.id] ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '2rem', fontFamily: 'var(--font-mono)' }}>
@@ -143,7 +141,8 @@ const ApiKeysView = () => {
             ) : (
               <>
                 <h3 style={{ marginBottom: '0.5rem', color: '#34d399', fontSize: '1.5rem' }}>Token Deployed Successfully</h3>
-                <p style={{ color: '#ff4d4f', fontSize: '0.95rem', marginBottom: '2rem', fontWeight: 'bold' }}>CRITICAL_WARN: This token will NEVER be retrievable again. Clone it to local env immediately.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Below is your **Full API Key**. Copy it now; you will not be able to see it again. Note: The identifier in your list is just a tag, **not** the key.</p>
+                <p style={{ color: '#ff4d4f', fontSize: '0.95rem', marginBottom: '2rem', fontWeight: 'bold' }}>CRITICAL: Use the dot-separated string below in your x-api-key header.</p>
                 <div style={{ background: 'rgba(52, 211, 153, 0.05)', border: '1px dashed #34d399', padding: '1.5rem', borderRadius: '8px', marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <code style={{ color: '#34d399', wordBreak: 'break-all', fontSize: '1.2rem', fontWeight: 'bold' }}>{generatedKey.apiKey}</code>
                   <CopyButton text={generatedKey.apiKey} style={{ background: '#34d399', color: '#000', padding: '0.6rem', border: 'none' }} className="" />

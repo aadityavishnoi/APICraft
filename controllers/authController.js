@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
@@ -79,8 +80,8 @@ const login = async(req, res) => {
 
 const generateApiKey = async (req, res) => {
     try {
-        const secretPart = Math.random().toString(36).substring(2) + Date.now();
-        const apiKey = req.user.id + "." + secretPart;
+        const secretPart = crypto.randomBytes(32).toString('hex');
+        const apiKey = `${req.user.id}.${secretPart}`;
 
         const user = await User.findById(req.user.id);
 
