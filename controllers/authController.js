@@ -85,6 +85,15 @@ const generateApiKey = async (req, res) => {
         const user = await User.findById(req.user.id);
 
         const hashedKey = await bcrypt.hash(secretPart, 10);
+        
+        // Push to multiple keys array (the new architecture)
+        user.apiKeys.push({
+            name: req.body.name || `Key_${Date.now().toString(36)}`,
+            keyHash: hashedKey,
+            createdAt: new Date()
+        });
+        
+        // Also update legacy single apiKey field for backward compatibility if needed
         user.apiKey = hashedKey;
         await user.save();
 

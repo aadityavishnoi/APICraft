@@ -17,8 +17,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    // Only redirect to login if we get a 401/403 and we're NOT already on the login page
+    // This prevents redirect loops and allows login/signup errors to be handled by the components
+    const isAuthRoute = window.location.pathname === '/login';
+    
+    if ((error.response?.status === 401 || error.response?.status === 403) && !isAuthRoute) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

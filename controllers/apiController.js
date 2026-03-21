@@ -128,7 +128,7 @@ const getLogStats = async (req, res) => {
     
     const User = require("../models/User");
     const user = await User.findById(userId);
-    const activeKeys = user && user.apiKeys ? user.apiKeys.filter(k => !k.revoked).length : 0;
+    const activeKeys = user && Array.isArray(user.apiKeys) ? user.apiKeys.filter(k => !k.revoked).length : 0;
     
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
