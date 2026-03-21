@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Database, Key, Activity, Settings, LayoutDashboard } from 'lucide-react';
+import { Database, Key, Activity, Settings, LayoutDashboard, Book } from 'lucide-react';
 
 const Sidebar = () => {
   return (
@@ -19,6 +19,9 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/logs" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`} style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
           <Activity size={18} /> Monitor Logs
+        </NavLink>
+        <NavLink to="/docs" className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`} style={{ padding: '0.8rem 1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <Book size={18} /> API Docs
         </NavLink>
       </nav>
       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--glass-border)' }}>
