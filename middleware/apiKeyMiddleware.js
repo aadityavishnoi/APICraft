@@ -30,11 +30,10 @@ const apiKeyMiddleware = async (req, res, next) => {
     let match = false;
     let validKeyObj = null;
 
-    // CAT2-A: Removed legacy user.apiKey check — it bypassed revocation
+    // ITEM 6: Iterating apiKeys array only (legacy user.apiKey bypass removed)
     if (user.apiKeys && user.apiKeys.length > 0) {
-      const incomingPrefix = secretPart.substring(0, 8); // CAT6-C pre-filter
+      const incomingPrefix = secretPart.substring(0, 8); 
       for (let k of user.apiKeys) {
-        // Skip revoked keys; use prefix pre-filter when available (backwards compat: match if no prefix stored)
         if (!k.revoked && (!k.keyPrefix || k.keyPrefix === incomingPrefix)) {
           const isMatch = await bcrypt.compare(secretPart, k.keyHash);
           if (isMatch) {
@@ -52,16 +51,22 @@ const apiKeyMiddleware = async (req, res, next) => {
       });
     }
 
+    // ITEM 2: Update lastUsed/requestCount BEFORE normalizing
     if (validKeyObj) {
       validKeyObj.lastUsed = new Date();
       validKeyObj.requestCount += 1;
       await user.save();
     }
 
-    // CAT5-D/CAT1-B: Only expose minimal identity — not the full User doc
-    req.user = { id: user._id.toString(), _id: user._id };
-    // CAT3-A: Expose matched key for downstream permission checks
+    // ITEM 2: Set req.user to a normalized plain object matching authMiddleware
+    req.user = {
+      id: user._id.toString(),
+      _id: user._id
+    };
+
     req.validKey = validKeyObj;
+    req.apiKeyObj = validKeyObj; // as requested
+
     next();
 
   } catch (error) {

@@ -2,9 +2,10 @@ const User = require("../models/User");
 
 const usageMiddleware = async (req, res, next) => {
     try {
-        const userId = req.user._id || req.user.id;
+        // ITEM 17: req.user.id is guaranteed to be a string after Item 2
+        // Mongoose findById accepts both string and ObjectId
+        const userId = req.user.id;
 
-        // CAT2-C: Atomic increment prevents race conditions on concurrent requests
         const result = await User.findOneAndUpdate(
             { _id: userId, $expr: { $lt: ["$usageCount", "$usageLimit"] } },
             { $inc: { usageCount: 1 } },

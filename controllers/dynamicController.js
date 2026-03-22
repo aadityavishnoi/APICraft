@@ -1,14 +1,23 @@
 const mongoose = require("mongoose");
 const Collection = require("../models/Collection");
 
-// CAT1-A: Compute isolated physical MongoDB collection name per user
-const getPhysicalName = (config) => `${config.userId}_${config.collectionName}`;
+// ITEM 3: Internal namespace collision fix
+function getMongoCollectionName(userId, collectionName) {
+  return `uc_${userId}_${collectionName}`;
+}
 
-// CAT4-C: Maximum documents per collection
 const MAX_DOCUMENTS_PER_COLLECTION = 10000;
 
+function sanitizeData(body) {
+    const clean = {};
+    for (const [k, v] of Object.entries(body)) {
+      if (k.startsWith('$')) continue; // strip operator keys
+      if (v !== null && typeof v === 'object') continue; // strip nested objects
+      clean[k] = v;
+    }
+    return clean;
+}
 
-// CREATE DATA
 const createData = async (req, res) => {
   try {
     const collection = req.params.collection;
@@ -24,17 +33,24 @@ const createData = async (req, res) => {
       });
     }
 
+    // ITEM 13: Enforce required fields
+    const requiredFields = config.fields
+      .filter(f => f.split(':')[2] === 'REQ')
+      .map(f => f.split(':')[0]);
+
+    const missingRequired = requiredFields.filter(
+      f => req.body[f] === undefined || req.body[f] === null || req.body[f] === ''
+    );
+
+    if (missingRequired.length > 0) {
+      return res.status(400).json({
+        message: 'Missing required fields.',
+        missingFields: missingRequired
+      });
+    }
+
     const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
     const incomingFields = Object.keys(req.body);
-
-    // CAT4-B: Block MongoDB operator injection via field names
-    for (let key of incomingFields) {
-      if (key.startsWith('$') || key.includes('.')) {
-        return res.status(400).json({
-          message: "Field names cannot start with '$' or contain '.'"
-        });
-      }
-    }
 
     const invalidFields = incomingFields.filter(
       field => !allowedFieldNames.includes(field)
@@ -48,11 +64,6 @@ const createData = async (req, res) => {
     }
 
     for (let key of incomingFields) {
-      if (typeof req.body[key] === 'object' && req.body[key] !== null) {
-        return res.status(400).json({
-          message: "Nested objects are not allowed in this dynamic collection."
-        });
-      }
       if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
         return res.status(400).json({
           message: "Field value exceeds maximum length of 5000 characters."
@@ -60,9 +71,12 @@ const createData = async (req, res) => {
       }
     }
 
-    const Model = mongoose.connection.collection(getPhysicalName(config));
+    // ITEM 11: Sanitize against NoSQL injection
+    const sanitizedBody = sanitizeData(req.body);
 
-    // CAT4-C: Check document count cap
+    // ITEM 3: Use namespaced physical name
+    const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
+
     const docCount = await Model.countDocuments();
     if (docCount >= MAX_DOCUMENTS_PER_COLLECTION) {
       return res.status(429).json({
@@ -70,7 +84,7 @@ const createData = async (req, res) => {
       });
     }
 
-    const result = await Model.insertOne(req.body);
+    const result = await Model.insertOne(sanitizedBody);
 
     res.json({
       message: "Data Inserted Successfully!",
@@ -85,8 +99,6 @@ const createData = async (req, res) => {
   }
 };
 
-
-// GET DATA
 const getData = async (req, res) => {
   try {
     const collection = req.params.collection;
@@ -102,16 +114,32 @@ const getData = async (req, res) => {
       });
     }
 
-    const Model = mongoose.connection.collection(getPhysicalName(config));
+    // ITEM 3: Use namespaced physical name
+    const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
 
-    // CAT3-E: Only return fields defined in the current schema
     const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
     const projection = { _id: 1 };
     allowedFieldNames.forEach(f => { projection[f] = 1; });
 
-    const data = await Model.find({}, { projection }).toArray();
+    // ITEM 12: Add Pagination
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip  = (page - 1) * limit;
 
-    res.json(data);
+    const [data, total] = await Promise.all([
+      Model.find({}, { projection }).skip(skip).limit(limit).toArray(),
+      Model.countDocuments()
+    ]);
+
+    res.json({
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
 
   } catch (error) {
     console.error("[getData]", error.message);
@@ -121,8 +149,6 @@ const getData = async (req, res) => {
   }
 };
 
-
-// UPDATE DATA
 const updateData = async (req, res) => {
   try {
     const collection = req.params.collection;
@@ -139,18 +165,8 @@ const updateData = async (req, res) => {
       });
     }
 
-    // Field validation
     const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
     const incomingFields = Object.keys(req.body);
-
-    // CAT4-B: Block MongoDB operator injection via field names
-    for (let key of incomingFields) {
-      if (key.startsWith('$') || key.includes('.')) {
-        return res.status(400).json({
-          message: "Field names cannot start with '$' or contain '.'"
-        });
-      }
-    }
 
     const invalidFields = incomingFields.filter(
       field => !allowedFieldNames.includes(field)
@@ -164,11 +180,6 @@ const updateData = async (req, res) => {
     }
 
     for (let key of incomingFields) {
-      if (typeof req.body[key] === 'object' && req.body[key] !== null) {
-        return res.status(400).json({
-          message: "Nested objects are not allowed in this dynamic collection."
-        });
-      }
       if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
         return res.status(400).json({
           message: "Field value exceeds maximum length of 5000 characters."
@@ -176,18 +187,21 @@ const updateData = async (req, res) => {
       }
     }
 
-    // ObjectId validation
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         message: "Invalid document ID"
       });
     }
 
-    const Model = mongoose.connection.collection(getPhysicalName(config));
+    // ITEM 11: Sanitize against NoSQL injection
+    const sanitizedBody = sanitizeData(req.body);
+
+    // ITEM 3: Use namespaced physical name
+    const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
 
     const result = await Model.updateOne(
       { _id: new mongoose.Types.ObjectId(id) },
-      { $set: req.body }
+      { $set: sanitizedBody }
     );
 
     if (result.matchedCount === 0) {
@@ -209,8 +223,6 @@ const updateData = async (req, res) => {
   }
 };
 
-
-// DELETE DATA
 const deleteData = async (req, res) => {
   try {
     const collection = req.params.collection;
@@ -233,7 +245,8 @@ const deleteData = async (req, res) => {
       });
     }
 
-    const Model = mongoose.connection.collection(getPhysicalName(config));
+    // ITEM 3: Use namespaced physical name
+    const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
 
     const result = await Model.deleteOne({
       _id: new mongoose.Types.ObjectId(id)
@@ -257,7 +270,6 @@ const deleteData = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createData,

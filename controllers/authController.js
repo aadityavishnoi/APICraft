@@ -1,14 +1,29 @@
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Joi = require('joi');
 
-const SALT_ROUNDS = 12; // CAT6-B: increased from 10 for passwords
+const SALT_ROUNDS = 12;
+
+const signupSchema = Joi.object({
+    name: Joi.string().min(1).max(100).required(),
+    email: Joi.string().email().max(200).required(),
+    password: Joi.string().min(8).max(128).required()
+});
+
+const loginSchema = Joi.object({
+    email: Joi.string().email().max(200).required(),
+    password: Joi.string().min(1).max(128).required()
+});
 
 const signup = async (req, res) => {
     try {
-        const{name, email, password} = req.body;
+        // ITEM 10: validate on signup
+        const { error: validationError } = signupSchema.validate(req.body);
+        if (validationError) return res.status(400).json({ message: validationError.details[0].message });
+
+        const { name, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
         if(existingUser) {
@@ -38,43 +53,44 @@ const signup = async (req, res) => {
 
 const login = async(req, res) => {
     try {
+        // ITEM 10: validate on login
+        const { error: validationError } = loginSchema.validate(req.body);
+        if (validationError) return res.status(400).json({ message: 'Invalid email or password.' });
+
         const { email, password } = req.body;
 
+        // ITEM 9: Generic error message for both cases
+        const GENERIC_ERROR = 'Invalid email or password.';
         const user = await User.findOne({ email });
 
-        // CAT5-A: Generic error message prevents user enumeration
-        if(!user){
-            // Dummy bcrypt compare to prevent timing-based enumeration
-            await bcrypt.compare(password, "$2b$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-            return res.status(401).json({
-                message: "Invalid email or password"
-            });
+        if (!user) {
+            // Run a dummy bcrypt to prevent timing attacks
+            await bcrypt.compare('dummy', '$2b$10$invalidhashpadding00000000000000000000000000000000000');
+            return res.status(400).json({ message: GENERIC_ERROR });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if(!isMatch){
-            return res.status(401).json({
-                message: "Invalid email or password"
-            });
+        if (!isMatch) {
+            return res.status(400).json({ message: GENERIC_ERROR });
         }
 
         const token = jwt.sign(
-            { id: user._id },
+            { id: user._id.toString() },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
 
         res.json({
-        message: "Login Successful!",
-        token,
-        user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        usageCount: user.usageCount,
-        usageLimit: user.usageLimit
-    },
-});
+            message: "Login Successful!",
+            token,
+            user: {
+                id: user._id.toString(),
+                name: user.name,
+                email: user.email,
+                usageCount: user.usageCount,
+                usageLimit: user.usageLimit
+            },
+        });
     } catch (error) {
         console.error("[login]", error.message);
         res.status(500).json({
@@ -86,11 +102,11 @@ const login = async(req, res) => {
 const generateApiKey = async (req, res) => {
     try {
         const secretPart = crypto.randomBytes(32).toString('hex');
+        
+        // ITEM 2: ensure we use the string ID
         const apiKey = `${req.user.id}.${secretPart}`;
-
         const user = await User.findById(req.user.id);
 
-        // CAT6-C: Cap active keys at 20
         const activeKeys = user.apiKeys.filter(k => !k.revoked).length;
         if (activeKeys >= 20) {
             return res.status(400).json({
@@ -99,9 +115,8 @@ const generateApiKey = async (req, res) => {
         }
 
         const hashedKey = await bcrypt.hash(secretPart, 10);
-        const keyPrefix = secretPart.substring(0, 8); // CAT6-C: fast pre-filter hint
+        const keyPrefix = secretPart.substring(0, 8); 
         
-        // Push to multiple keys array (the new architecture)
         user.apiKeys.push({
             name: req.body.name || `Key_${Date.now().toString(36)}`,
             keyHash: hashedKey,
@@ -109,7 +124,6 @@ const generateApiKey = async (req, res) => {
             createdAt: new Date()
         });
         
-        // CAT2-B: Removed legacy user.apiKey write — it bypassed revocation
         await user.save();
 
         res.json({
@@ -157,7 +171,7 @@ const getProfile = async (req, res) => {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: "User not found" });
         res.json({
-            id: user._id,
+            id: user._id.toString(),
             name: user.name,
             email: user.email,
             usageCount: user.usageCount,

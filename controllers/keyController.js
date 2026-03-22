@@ -2,8 +2,6 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
-const MAX_ACTIVE_KEYS = 20; // CAT6-C
-
 const getKeys = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -27,20 +25,19 @@ const createKey = async (req, res) => {
         const { name, permissions } = req.body;
         const user = await User.findById(req.user.id);
         
-        // CAT6-C: Cap active keys
-        const activeKeys = user.apiKeys.filter(k => !k.revoked).length;
-        if (activeKeys >= MAX_ACTIVE_KEYS) {
+        // ITEM 8: Enforce max active API keys limit
+        const MAX_KEYS = 20;
+        if (user.apiKeys.filter(k => !k.revoked).length >= MAX_KEYS) {
             return res.status(400).json({
-                message: `Maximum of ${MAX_ACTIVE_KEYS} active keys allowed`
+                message: `Maximum of ${MAX_KEYS} active API keys allowed.`
             });
         }
 
         const secretPart = crypto.randomBytes(32).toString('hex');
-        const apiKey = `${user._id}.${secretPart}`;
+        const apiKey = `${user._id.toString()}.${secretPart}`;
         const keyHash = await bcrypt.hash(secretPart, 10);
-        const keyPrefix = secretPart.substring(0, 8); // CAT6-C: fast pre-filter hint
+        const keyPrefix = secretPart.substring(0, 8); 
 
-        // CAT3-A: Validate and store permissions
         const validPermissions = ['read', 'write', 'delete'];
         const keyPermissions = Array.isArray(permissions) 
             ? permissions.filter(p => validPermissions.includes(p))
@@ -89,7 +86,6 @@ const updateKey = async (req, res) => {
     }
 };
 
-// CAT2-E: Atomic key rotation — revoke old + create new in one save
 const rotateKey = async (req, res) => {
     try {
         const { id } = req.params;
@@ -97,12 +93,10 @@ const rotateKey = async (req, res) => {
         const oldKey = user.apiKeys.id(id);
         if (!oldKey) return res.status(404).json({ message: "Key not found" });
 
-        // Revoke old key
         oldKey.revoked = true;
 
-        // Create new key
         const secretPart = crypto.randomBytes(32).toString('hex');
-        const apiKey = `${user._id}.${secretPart}`;
+        const apiKey = `${user._id.toString()}.${secretPart}`;
         const keyHash = await bcrypt.hash(secretPart, 10);
         const keyPrefix = secretPart.substring(0, 8);
 

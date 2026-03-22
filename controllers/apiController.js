@@ -18,7 +18,6 @@ const createCollection = async (req, res) => {
         });
 
     } catch (error) {
-        // CAT1-A: Compound unique index violation → duplicate name for this user
         if (error.code === 11000) {
             return res.status(409).json({
                 message: "A collection with this name already exists"
@@ -50,26 +49,18 @@ const deleteCollection = async(req, res) => {
     try {
         const collectionName = req.params.name;
 
-        // CAT3-D: Look up config first to get the physical collection name
-        const config = await Collection.findOne({
-            collectionName,
-            userId: req.user.id
-        });
-
         await Collection.deleteOne({
             collectionName,
             userId: req.user.id
         });
 
-        // CAT3-D: Drop the actual MongoDB collection data
-        if (config) {
-            const physicalName = `${config.userId}_${config.collectionName}`;
-            try {
-                await mongoose.connection.collection(physicalName).drop();
-            } catch (dropErr) {
-                // Code 26 = NamespaceNotFound (collection was never written to)
-                if (dropErr.code !== 26) console.error("[deleteCollection:drop]", dropErr.message);
-            }
+        // ITEM 4: Drop actual data
+        const internalName = `uc_${req.user.id}_${collectionName}`;
+        try {
+            await mongoose.connection.dropCollection(internalName);
+        } catch (e) {
+            // collection may not exist yet if no data was inserted — ignore
+            if (e.codeName !== 'NamespaceNotFound') throw e;
         }
 
         res.json({
@@ -85,28 +76,28 @@ const deleteCollection = async(req, res) => {
 
 const updateCollection = async(req, res) => {
     try{
-    const collectionName = req.params.name;
+        const collectionName = req.params.name;
 
-    const updated = await Collection.findOneAndUpdate(
-        {
-            collectionName,
-            userId: req.user.id
-        },
-        {
-            fields: req.body.fields
-        },
-        {
-            new: true
-        }
-    );
+        const updated = await Collection.findOneAndUpdate(
+            {
+                collectionName,
+                userId: req.user.id
+            },
+            {
+                fields: req.body.fields
+            },
+            {
+                new: true
+            }
+        );
 
-    res.json(updated);
-} catch(error){
-console.error("[updateCollection]", error.message);
-res.status(500).json({
-    message: "Update Failed."
-});
-}
+        res.json(updated);
+    } catch(error){
+        console.error("[updateCollection]", error.message);
+        res.status(500).json({
+            message: "Update Failed."
+        });
+    }
 };
 
 const getApiLogs = async (req, res) => {
