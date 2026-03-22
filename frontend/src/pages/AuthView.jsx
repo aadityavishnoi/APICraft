@@ -93,11 +93,6 @@ const AuthView = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
               <label style={{ marginBottom: 0 }}>Password</label>
-              {mode === 'login' && (
-                <button type="button" className="btn-ghost" style={{ fontSize: '0.75rem', padding: 0 }}>
-                  Forgot password?
-                </button>
-              )}
             </div>
             <input 
               type="password" 
