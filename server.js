@@ -8,29 +8,14 @@ for (const key of REQUIRED_ENV) {
     process.exit(1);
   }
 }
-const express = require("express");
-const dotenv = require("dotenv");
-const helmet = require("helmet");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
-const YAML = require("yamljs");
-const swaggerUi = require("swagger-ui-express");
-
-const connectDB = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
-const apiRoutes = require("./routes/apiRoutes");
-const dynamicRoutes = require("./routes/dynamicRoutes");
-
-dotenv.config();
-connectDB();
-const app = express();
 
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
 
 const authRoutes = require('./routes/authRoutes');
 const apiRoutes = require('./routes/apiRoutes');
@@ -40,8 +25,6 @@ const app = express();
 
 // ── Middleware Pipeline ──────────────────────────────────────
 
-const swaggerUi = require('swagger-ui-express');
-const YAML = require('yamljs');
 try {
     const swaggerDocument = YAML.load('./docs/openapi.yaml');
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -53,8 +36,6 @@ try {
 if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }
-
-
 
 // ITEM 15: Explicitly hardened Helmet policy
 app.use(helmet({
@@ -86,7 +67,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
 }));
-
 
 // ── Backend Routes ──────────────────────────────────────────
 // Static / Dashboard Routes:
