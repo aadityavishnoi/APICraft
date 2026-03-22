@@ -225,8 +225,12 @@ const getCollectionData = async (req, res) => {
         const internalName = `uc_${req.user.id}_${name}`;
         const Model = mongoose.connection.collection(internalName);
         
+        console.log(`[getCollectionData] fetching from: ${internalName}`);
+        
         // Fetch last 100 documents
         const data = await Model.find({}).sort({ _id: -1 }).limit(100).toArray();
+        
+        console.log(`[getCollectionData] found ${data.length} documents`);
         
         res.json(data);
     } catch (error) {
