@@ -1,0 +1,65 @@
+[33me4228a1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m commit
+[33m39bfe29[m commit
+[33m76142f1[m commit
+[33m6b9ad0f[m commit
+[33m00b81da[m commit
+[33mafafc0c[m commit
+[33mee8acb6[m commit
+[33m158b110[m c commit
+[33m9df10cb[m commit
+[33ma57473a[m commit
+[33md15312c[m commit
+[33m48a2676[m commit
+[33mf3758ae[m commit
+[33m51ea494[m commit
+[33mff88267[m commit
+[33m12250f6[m commit
+[33m0a19fa2[m commit
+[33mfb4f3ad[m commit
+[33m3bc8ae1[m commit
+[33mad7accd[m commit
+[33m9f6b063[m feat: Implement API key management UI and initial user signup logic.
+[33ma34c4d3[m feat: Implement core API for user authentication, collection management, API logging, and statistics, including a frontend API client.
+[33m7643ce5[m commit
+[33m4310060[m commit
+[33m37450bf[m commit
+[33mecf9cf5[m commit
+[33m6033aa3[m commit
+[33mb8a1726[m commit
+[33m6e834bc[m commit
+[33m04020ae[m commit
+[33m6126e11[m commit
+[33m490a9b6[m commit
+[33m748c73f[m commit
+[33m0088373[m commit
+[33mda58150[m commit
+[33m6ed8663[m commit
+[33mc39e1c0[m commit
+[33mc6c9ce9[m commit
+[33m96ee450[m signup
+[33me60eeb4[m commit
+[33mc1cb33e[m commit
+[33me196946[m Merge branch 'main' of https://github.com/aadityavishnoi/APICraft
+[33m2652750[m frontend
+[33mabd925b[m Update author information in readme.md
+[33m8cccbca[m commit
+[33me481161[m commit
+[33m495dd53[m commit
+[33mdc5c7bf[m commit
+[33m3eb8493[m commit
+[33m24f0598[m commit
+[33m5e9bd03[m commit
+[33m2d6eb0c[m commit
+[33m33f2e64[m apiKeyMiddleware
+[33m1c899b2[m usageMiddleware
+[33maddb3f6[m CRUD
+[33m32ada11[m phase1
+[33ma058604[m login
+[33m9c198fa[m signup
+[33m6f7065c[m commit
+[33m796c12a[m commit
+[33md6354e4[m Initial project setup
+[33m7c6e817[m commit
+[33ma45b00c[m commit
+[33m67e04f8[m commit
+[33m31f7cf9[m first commit

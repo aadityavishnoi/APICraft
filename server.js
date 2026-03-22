@@ -8,6 +8,23 @@ for (const key of REQUIRED_ENV) {
     process.exit(1);
   }
 }
+const express = require("express");
+const dotenv = require("dotenv");
+const helmet = require("helmet");
+const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
+const YAML = require("yamljs");
+const swaggerUi = require("swagger-ui-express");
+
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/authRoutes");
+const apiRoutes = require("./routes/apiRoutes");
+const dynamicRoutes = require("./routes/dynamicRoutes");
+
+dotenv.config();
+connectDB();
+const app = express();
 
 const express = require('express');
 const mongoose = require('mongoose');
