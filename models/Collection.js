@@ -15,8 +15,11 @@ const CollectionSchema = new mongoose.Schema({
 
     createdAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now
     }
 });
+
+// CAT1-A: Prevent duplicate collection names per user at the DB level
+CollectionSchema.index({ userId: 1, collectionName: 1 }, { unique: true });
 
 module.exports = mongoose.model("Collection", CollectionSchema);

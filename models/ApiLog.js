@@ -8,7 +8,7 @@ const apiLogSchema = new mongoose.Schema ({
     status: Number,
     createdAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now
     }
 });
 

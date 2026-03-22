@@ -4,13 +4,13 @@ const logMiddleware = async (req, res, next) => {
   res.on("finish", async () => {
     try {
       await ApiLog.create({
-        userId: req.user._id,
+        userId: (req.user._id || req.user.id).toString(),
         collectionName: req.params.collection,
         method: req.method,
         status: res.statusCode
       });
     } catch (error) {
-      console.log("Logging error:", error);
+      console.error("[logMiddleware]", error.message);
     }
   });
 

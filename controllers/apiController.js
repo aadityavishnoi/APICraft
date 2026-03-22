@@ -1,4 +1,4 @@
-const { get } = require("mongoose");
+const mongoose = require("mongoose");
 const Collection = require("../models/Collection");
 const ApiLog = require("../models/ApiLog");
 
@@ -18,7 +18,13 @@ const createCollection = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error),
+        // CAT1-A: Compound unique index violation → duplicate name for this user
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: "A collection with this name already exists"
+            });
+        }
+        console.error("[createCollection]", error.message);
         res.status(500).json({
             message: "Failed To Create Collection! Server Error."
         });
@@ -33,7 +39,7 @@ const getCollection = async (req, res) => {
 
         res.json(collection);
     } catch (error) {
-        console.log(error);
+        console.error("[getCollection]", error.message);
         res.status(500).json({
             message: "Error Fetching Collections"
         });
@@ -44,16 +50,33 @@ const deleteCollection = async(req, res) => {
     try {
         const collectionName = req.params.name;
 
+        // CAT3-D: Look up config first to get the physical collection name
+        const config = await Collection.findOne({
+            collectionName,
+            userId: req.user.id
+        });
+
         await Collection.deleteOne({
             collectionName,
             userId: req.user.id
         });
 
+        // CAT3-D: Drop the actual MongoDB collection data
+        if (config) {
+            const physicalName = `${config.userId}_${config.collectionName}`;
+            try {
+                await mongoose.connection.collection(physicalName).drop();
+            } catch (dropErr) {
+                // Code 26 = NamespaceNotFound (collection was never written to)
+                if (dropErr.code !== 26) console.error("[deleteCollection:drop]", dropErr.message);
+            }
+        }
+
         res.json({
             message: "Collection Deleted Successfully"
         });
     } catch (error) {
-        console.log(error);
+        console.error("[deleteCollection]", error.message);
         res.status(500).json({
             message: "Delete Failed"
         });
@@ -79,7 +102,7 @@ const updateCollection = async(req, res) => {
 
     res.json(updated);
 } catch(error){
-console.log(error);
+console.error("[updateCollection]", error.message);
 res.status(500).json({
     message: "Update Failed."
 });
@@ -165,7 +188,7 @@ const getLogStats = async (req, res) => {
         charts: { lineChartData, doughnutChartData, barChartData }
     });
   } catch (error) {
-    console.log(error);
+    console.error("[getLogStats]", error.message);
     res.status(500).json({ message: "Error fetching stats" });
   }
 };
@@ -189,10 +212,11 @@ const generateDocs = async (req, res) => {
 
         res.json(docs);
     } catch (error) {
-        console.log(error);
+        console.error("[generateDocs]", error.message);
         res.status(500).json({
-            message: "Docs Generated Successfully!"
+            message: "Error generating docs"
         });
     }
 };
+
 module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs };

@@ -12,10 +12,11 @@ router.delete("/collections/:name", authMiddleware, deleteCollection);
 router.put("/collections/:name", authMiddleware, updateCollection);
 router.get("/api-docs", authMiddleware, generateDocs);
 
-const { getKeys, createKey, deleteKey, updateKey } = require("../controllers/keyController");
+const { getKeys, createKey, deleteKey, updateKey, rotateKey } = require("../controllers/keyController");
 router.get("/keys", authMiddleware, getKeys);
 router.post("/keys", authMiddleware, createKey);
 router.delete("/keys/:id", authMiddleware, deleteKey);
 router.put("/keys/:id", authMiddleware, updateKey);
+router.post("/keys/:id/rotate", authMiddleware, rotateKey);
 
 module.exports = router;

@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const SALT_ROUNDS = 12; // CAT6-B: increased from 10 for passwords
+
 const signup = async (req, res) => {
     try {
         const{name, email, password} = req.body;
@@ -14,7 +16,7 @@ const signup = async (req, res) => {
                 message: "User Already Exists!"
             });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
         const newUser = new User({
             name,
             email,
@@ -27,7 +29,7 @@ const signup = async (req, res) => {
             message: "User Created Successfully!"
         })
     } catch (error) {
-        console.log(error);
+        console.error("[signup]", error.message);
         res.status(500).json({
             message: "Error Creating User!"
         });
@@ -40,16 +42,19 @@ const login = async(req, res) => {
 
         const user = await User.findOne({ email });
 
+        // CAT5-A: Generic error message prevents user enumeration
         if(!user){
-            return res.status(400).json({
-                message: "User Not Found"
+            // Dummy bcrypt compare to prevent timing-based enumeration
+            await bcrypt.compare(password, "$2b$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            return res.status(401).json({
+                message: "Invalid email or password"
             });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if(!isMatch){
-            return res.status(400).json({
-                message: "Password Doesn't Match."
+            return res.status(401).json({
+                message: "Invalid email or password"
             });
         }
 
@@ -71,7 +76,7 @@ const login = async(req, res) => {
     },
 });
     } catch (error) {
-        console.log(error);
+        console.error("[login]", error.message);
         res.status(500).json({
             message: "Login Failed"
         });
@@ -85,17 +90,26 @@ const generateApiKey = async (req, res) => {
 
         const user = await User.findById(req.user.id);
 
+        // CAT6-C: Cap active keys at 20
+        const activeKeys = user.apiKeys.filter(k => !k.revoked).length;
+        if (activeKeys >= 20) {
+            return res.status(400).json({
+                message: "Maximum of 20 active API keys allowed. Revoke or delete existing keys first."
+            });
+        }
+
         const hashedKey = await bcrypt.hash(secretPart, 10);
+        const keyPrefix = secretPart.substring(0, 8); // CAT6-C: fast pre-filter hint
         
         // Push to multiple keys array (the new architecture)
         user.apiKeys.push({
             name: req.body.name || `Key_${Date.now().toString(36)}`,
             keyHash: hashedKey,
+            keyPrefix,
             createdAt: new Date()
         });
         
-        // Also update legacy single apiKey field for backward compatibility if needed
-        user.apiKey = hashedKey;
+        // CAT2-B: Removed legacy user.apiKey write — it bypassed revocation
         await user.save();
 
         res.json({
@@ -103,7 +117,7 @@ const generateApiKey = async (req, res) => {
             apiKey
         });
     } catch (error) {
-        console.log(error);
+        console.error("[generateApiKey]", error.message);
         res.status(500).json({
             message: "Failed To Generate API Key!"
         });
@@ -119,7 +133,7 @@ const updateUser = async (req, res) => {
         if (name) user.name = name;
         if (email) user.email = email;
         if (password) {
-            user.password = await bcrypt.hash(password, 10);
+            user.password = await bcrypt.hash(password, SALT_ROUNDS);
         }
 
         await user.save();
@@ -155,4 +169,3 @@ const getProfile = async (req, res) => {
 };
 
 module.exports = { signup, login, generateApiKey, updateUser, deleteAccount, getProfile };
-

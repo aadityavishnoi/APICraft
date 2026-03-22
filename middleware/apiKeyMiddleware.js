@@ -30,13 +30,12 @@ const apiKeyMiddleware = async (req, res, next) => {
     let match = false;
     let validKeyObj = null;
 
-    if (user.apiKey) {
-      match = await bcrypt.compare(secretPart, user.apiKey);
-    }
-
-    if (!match && user.apiKeys && user.apiKeys.length > 0) {
+    // CAT2-A: Removed legacy user.apiKey check — it bypassed revocation
+    if (user.apiKeys && user.apiKeys.length > 0) {
+      const incomingPrefix = secretPart.substring(0, 8); // CAT6-C pre-filter
       for (let k of user.apiKeys) {
-        if (!k.revoked) {
+        // Skip revoked keys; use prefix pre-filter when available (backwards compat: match if no prefix stored)
+        if (!k.revoked && (!k.keyPrefix || k.keyPrefix === incomingPrefix)) {
           const isMatch = await bcrypt.compare(secretPart, k.keyHash);
           if (isMatch) {
             match = true;
@@ -59,11 +58,14 @@ const apiKeyMiddleware = async (req, res, next) => {
       await user.save();
     }
 
-    req.user = user;
+    // CAT5-D/CAT1-B: Only expose minimal identity — not the full User doc
+    req.user = { id: user._id.toString(), _id: user._id };
+    // CAT3-A: Expose matched key for downstream permission checks
+    req.validKey = validKeyObj;
     next();
 
   } catch (error) {
-    console.log(error);
+    console.error("[apiKeyMiddleware]", error.message);
     res.status(500).json({
       message: "API key authentication error"
     });
