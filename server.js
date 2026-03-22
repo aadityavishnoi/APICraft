@@ -37,9 +37,7 @@ if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }
 
-// ── Root SPA Fallback (Moved to end in production, but defined early here for dev) ──
-const distPath = path.join(__dirname, 'frontend/dist');
-app.use(express.static(distPath));
+
 
 // ITEM 15: Explicitly hardened Helmet policy
 app.use(helmet({
@@ -58,7 +56,7 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 // ITEM 14: Read allowed CORS explicitly from an env array
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'https://api-craft-neon.vercel.app'];
+  : ['http://localhost:5173', 'https://api-craft-neon.vercel.app', 'https://apicraft-qfr4.onrender.com'];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -104,14 +102,3 @@ mongoose.connect(process.env.MONGO_URI)
   })
   .catch(err => console.log(err));
 
-// ── Serving SPA ─────────────────────────────────────────────
-if (process.env.NODE_ENV === 'production') {
-    // Single page Application Fallback
-    app.get('{*path}', (req, res) => {
-        // Prevent API requests from resolving to index.html on missing endpoints
-        if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
-            return res.status(404).json({ error: "API Route Not Found" })
-        }
-        res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
-    });
-}
