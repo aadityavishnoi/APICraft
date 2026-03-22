@@ -106,9 +106,30 @@ const updateUser = async (req, res) => {
         if (name) user.name = name;
         if (email) user.email = email;
 
+        if (password) {
+            try {
+                // Get the user from Firebase
+                const firebaseUser = await admin.auth().getUserByEmail(user.email);
+                
+                // Update password in Firebase
+                await admin.auth().updateUser(firebaseUser.uid, { password });
+
+                // Also save the hashed password in MongoDB DB
+                const hashedPass = await bcrypt.hash(password, 10);
+                user.password = hashedPass;
+            } catch (firebaseErr) {
+                console.error("Firebase update password error:", firebaseErr);
+                if (firebaseErr.code === 'auth/operation-not-allowed') {
+                    return res.status(400).json({ message: "Email/Password sign-in is disabled in Firebase console. Please enable it to set a password." });
+                }
+                return res.status(400).json({ message: "Failed to update password in Firebase: " + firebaseErr.message });
+            }
+        }
+
         await user.save();
         res.json({ message: "Profile updated successfully" });
     } catch(err) {
+        console.error("Profile update error", err);
         res.status(500).json({ message: "Failed to update profile" });
     }
 };
