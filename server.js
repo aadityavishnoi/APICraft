@@ -107,7 +107,7 @@ mongoose.connect(process.env.MONGO_URI)
 // ── Serving SPA ─────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
     // Single page Application Fallback
-    app.get('*', (req, res) => {
+    app.get('{*path}', (req, res) => {
         // Prevent API requests from resolving to index.html on missing endpoints
         if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
             return res.status(404).json({ error: "API Route Not Found" })
