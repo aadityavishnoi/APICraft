@@ -210,4 +210,38 @@ const generateDocs = async (req, res) => {
     }
 };
 
-module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs };
+const getCollectionData = async (req, res) => {
+    try {
+        const { name } = req.params;
+        const collection = await Collection.findOne({
+            collectionName: name,
+            userId: req.user.id
+        });
+
+        if (!collection) {
+            return res.status(404).json({ message: "Collection not found" });
+        }
+
+        const internalName = `uc_${req.user.id}_${name}`;
+        const Model = mongoose.connection.collection(internalName);
+        
+        // Fetch last 100 documents
+        const data = await Model.find({}).sort({ _id: -1 }).limit(100).toArray();
+        
+        res.json(data);
+    } catch (error) {
+        console.error("[getCollectionData]", error.message);
+        res.status(500).json({ message: "Error fetching collection data" });
+    }
+};
+
+module.exports = { 
+    createCollection, 
+    getCollection, 
+    deleteCollection, 
+    updateCollection, 
+    getApiLogs, 
+    getLogStats, 
+    generateDocs, 
+    getCollectionData 
+};

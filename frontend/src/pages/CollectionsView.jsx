@@ -71,6 +71,10 @@ const CollectionsView = () => {
   const [newColName, setNewColName] = useState('');
   const [fields, setFields] = useState([{ id: 'f1', name: '', type: 'String', required: false }]);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  
+  const [activeTab, setActiveTab] = useState('endpoints'); // 'endpoints' or 'data'
+  const [collectionData, setCollectionData] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
 
   const fetchCollections = async () => {
     try {
@@ -80,6 +84,20 @@ const CollectionsView = () => {
   };
   
   useEffect(() => { fetchCollections(); }, []);
+
+  const fetchCollectionData = async (name) => {
+    setDataLoading(true);
+    try {
+      const { data } = await api.get(`/collections/${name}/data`);
+      setCollectionData(data);
+    } catch(err) { console.error(err); } finally { setDataLoading(false); }
+  };
+
+  useEffect(() => {
+    if (activeCol && activeTab === 'data') {
+      fetchCollectionData(activeCol.collectionName);
+    }
+  }, [activeCol, activeTab]);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -239,44 +257,134 @@ const CollectionsView = () => {
               </button>
             </div>
 
+            <div style={{ padding: '0 2rem', borderBottom: '1px solid var(--border)', display: 'flex', gap: '2rem' }}>
+              <button 
+                onClick={() => setActiveTab('endpoints')}
+                style={{ 
+                  padding: '1rem 0', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '600', 
+                  color: activeTab === 'endpoints' ? 'var(--blue)' : 'var(--text-muted)',
+                  borderBottom: `2px solid ${activeTab === 'endpoints' ? 'var(--blue)' : 'transparent'}`,
+                  background: 'none',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Endpoints
+              </button>
+              <button 
+                onClick={() => setActiveTab('data')}
+                style={{ 
+                  padding: '1rem 0', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '600', 
+                  color: activeTab === 'data' ? 'var(--blue)' : 'var(--text-muted)',
+                  borderBottom: `2px solid ${activeTab === 'data' ? 'var(--blue)' : 'transparent'}`,
+                  background: 'none',
+                  borderTop: 'none',
+                  borderLeft: 'none',
+                  borderRight: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Data Preview
+              </button>
+            </div>
+
             <div style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Available Endpoints</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Method</th>
-                    <th>Endpoint</th>
-                    <th>Action</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { m: 'GET', e: `/api/${activeCol.collectionName}`, a: 'Fetch all' },
-                    { m: 'POST', e: `/api/${activeCol.collectionName}`, a: 'Create new' },
-                    { m: 'GET', e: `/api/${activeCol.collectionName}/:id`, a: 'Fetch single' },
-                    { m: 'PUT', e: `/api/${activeCol.collectionName}/:id`, a: 'Update existing' },
-                    { m: 'DELETE', e: `/api/${activeCol.collectionName}/:id`, a: 'Delete' }
-                  ].map((row, i) => (
-                    <tr key={i}>
-                      <td>
-                        <span className={`badge ${
-                          row.m === 'GET' ? 'badge-blue' : 
-                          row.m === 'POST' ? 'badge-green' : 
-                          'badge-red'
-                        }`}>
-                          {row.m}
-                        </span>
-                      </td>
-                      <td className="mono" style={{ color: 'var(--text-secondary)' }}>{row.e}</td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{row.a}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <CopyButton text={`${baseUrl}${row.e}`} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {activeTab === 'endpoints' ? (
+                <>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Available Endpoints</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Action</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { m: 'GET', e: `/api/${activeCol.collectionName}`, a: 'Fetch all' },
+                        { m: 'POST', e: `/api/${activeCol.collectionName}`, a: 'Create new' },
+                        { m: 'GET', e: `/api/${activeCol.collectionName}/:id`, a: 'Fetch single' },
+                        { m: 'PUT', e: `/api/${activeCol.collectionName}/:id`, a: 'Update existing' },
+                        { m: 'DELETE', e: `/api/${activeCol.collectionName}/:id`, a: 'Delete' }
+                      ].map((row, i) => (
+                        <tr key={i}>
+                          <td>
+                            <span className={`badge ${
+                              row.m === 'GET' ? 'badge-blue' : 
+                              row.m === 'POST' ? 'badge-green' : 
+                              'badge-red'
+                            }`}>
+                              {row.m}
+                            </span>
+                          </td>
+                          <td className="mono" style={{ color: 'var(--text-secondary)' }}>{row.e}</td>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{row.a}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <CopyButton text={`${baseUrl}${row.e}`} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '600', color: 'var(--text-primary)' }}>Last 100 Records</h3>
+                    <button onClick={() => fetchCollectionData(activeCol.collectionName)} className="btn-secondary" style={{ fontSize: '0.8rem' }}>Refresh</button>
+                  </div>
+                  
+                  {dataLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Loading records...</div>
+                  ) : collectionData.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border)' }}>
+                      <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>No data found in this collection yet.</p>
+                      <button onClick={() => setActiveTab('endpoints')} className="btn-primary" style={{ fontSize: '0.85rem' }}>View Endpoints to insert data</button>
+                    </div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ minWidth: '100%' }}>
+                        <thead>
+                          <tr>
+                            <th style={{ width: '50px' }}>_id</th>
+                            {activeCol.fields.map((f, i) => (
+                              <th key={i}>{f.split(':')[0]}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {collectionData.map((row) => (
+                            <tr key={row._id}>
+                              <td className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }} title={row._id}>
+                                {row._id.slice(-6)}...
+                              </td>
+                              {activeCol.fields.map((f, i) => {
+                                const fieldName = f.split(':')[0];
+                                const val = row[fieldName];
+                                return (
+                                  <td key={i} style={{ fontSize: '0.9rem' }}>
+                                    {typeof val === 'boolean' ? (val ? 'true' : 'false') : 
+                                     val === null || val === undefined ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>null</span> :
+                                     String(val)}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
