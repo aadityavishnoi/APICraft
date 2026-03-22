@@ -106,107 +106,10 @@ const updateUser = async (req, res) => {
         if (name) user.name = name;
         if (email) user.email = email;
 
-        if (password) {
-            // Only save the hashed password in MongoDB DB to avoid Firebase credentials issues
-            const hashedPass = await bcrypt.hash(password, 10);
-            user.password = hashedPass;
-        }
-
         await user.save();
         res.json({ message: "Profile updated successfully" });
     } catch(err) {
-        console.error("Profile update error", err);
         res.status(500).json({ message: "Failed to update profile" });
-    }
-};
-
-const register = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-
-        let user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({ message: "User already exists with this email" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user = new User({
-            name: name || 'User',
-            email: email,
-            password: hashedPassword
-        });
-
-        await user.save();
-
-        const jwtToken = jwt.sign(
-            { id: user._id.toString() },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        );
-
-        res.status(201).json({
-            message: "Registration Successful!",
-            token: jwtToken,
-            user: {
-                id: user._id.toString(),
-                name: user.name,
-                email: user.email,
-                usageCount: user.usageCount,
-                usageLimit: user.usageLimit
-            },
-        });
-    } catch (error) {
-        console.error("Registration error:", error);
-        res.status(500).json({ message: "Registration failed" });
-    }
-};
-
-const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        if (!user.password) {
-            return res.status(400).json({ message: "Please login with Google or reset your password" });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
-        }
-
-        const jwtToken = jwt.sign(
-            { id: user._id.toString() },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        );
-
-        res.json({
-            message: "Login Successful!",
-            token: jwtToken,
-            user: {
-                id: user._id.toString(),
-                name: user.name,
-                email: user.email,
-                usageCount: user.usageCount,
-                usageLimit: user.usageLimit
-            },
-        });
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ message: "Login failed" });
     }
 };
 
@@ -235,4 +138,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { firebaseLogin, generateApiKey, updateUser, deleteAccount, getProfile, register, login };
+module.exports = { firebaseLogin, generateApiKey, updateUser, deleteAccount, getProfile };

@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
 import { auth } from '../firebase';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const AuthView = () => {
   const [mode, setMode] = useState('login');
@@ -31,23 +31,25 @@ const AuthView = () => {
     setLoading(true);
 
     try {
+      let userCredential;
       if (mode === 'signup') {
-        const { data } = await api.post('/auth/register', {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        });
-        login(data.user, data.token);
+        userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        try {
+           await handleFirebaseSuccess(userCredential);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to authenticate with backend.');
+        }
       } else {
-        const { data } = await api.post('/auth/login', {
-          email: formData.email,
-          password: formData.password
-        });
-        login(data.user, data.token);
+        userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        try {
+           await handleFirebaseSuccess(userCredential);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to authenticate with backend.');
+        }
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Authentication failed');
+      setError(err.message.replace('Firebase: ', ''));
     } finally {
       setLoading(false);
     }
