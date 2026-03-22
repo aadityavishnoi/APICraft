@@ -45,7 +45,7 @@ const distPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(distPath));
 
 // SPA catch-all: serve index.html for any GET request that doesn't match a static file or API
-app.get("*", (req, res) => {
+app.get('/{*splat}', (req, res) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/api-docs")) {
     return res.status(404).json({ message: "API endpoint not found" });
   }
