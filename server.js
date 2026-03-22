@@ -44,12 +44,14 @@ const distPath = path.join(__dirname, "frontend", "dist");
 // Serve static files from the frontend/dist directory
 app.use(express.static(distPath));
 
-// SPA catch-all: serve index.html for any GET request that doesn't match a static file or API
-app.get('/{*splat}', (req, res) => {
-  if (req.path.startsWith("/api") || req.path.startsWith("/api-docs")) {
-    return res.status(404).json({ message: "API endpoint not found" });
-  }
+// serve index.html for root path only
+app.get("/", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
+});
+
+// Catch-all: Anything not matched by standard routes or static files returns 404
+app.use((req, res) => {
+  res.status(404).json({ message: "Endpoint not found" });
 });
 
 // ── Global error handler ──────────────────────────────────────
