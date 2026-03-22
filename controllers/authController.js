@@ -64,8 +64,8 @@ const login = async(req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            // Run a dummy bcrypt to prevent timing attacks
-            await bcrypt.compare('dummy', '$2b$10$invalidhashpadding00000000000000000000000000000000000');
+            // Run a dummy bcrypt to prevent timing attacks using a statically valid hash map
+            await bcrypt.compare(password || 'dummy', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy');
             return res.status(400).json({ message: GENERIC_ERROR });
         }
 

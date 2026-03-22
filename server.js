@@ -31,6 +31,16 @@ try {
 } catch (e) {
     console.error("Swagger YAML not found", e.message);
 }
+
+// Provide trust proxy for correct IP limits in reverse-proxy situations
+if (process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
+
+// ── Root SPA Fallback (Moved to end in production, but defined early here for dev) ──
+const distPath = path.join(__dirname, 'frontend/dist');
+app.use(express.static(distPath));
+
 // ITEM 15: Explicitly hardened Helmet policy
 app.use(helmet({
   hsts: {
@@ -41,7 +51,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // copilot: allow Swagger UI scripts
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
@@ -53,6 +63,9 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false
 }));
+
+// Provide generous but finite body limits to prevent JSON DoS
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 
 // ITEM 14: Read allowed CORS explicitly from an env array
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
@@ -70,11 +83,6 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
 }));
-
-// Provide trust proxy for correct IP limits in reverse-proxy situations
-app.set('trust proxy', 1);
-
-app.use(express.json());
 
 
 // ── Backend Routes ──────────────────────────────────────────
@@ -98,13 +106,18 @@ app.use((err, req, res, next) => {
 });
 
 // ── Database Connection ─────────────────────────────────────
+const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
+  .then(() => {
+    console.log('MongoDB Connected');
+    app.listen(PORT, () => {
+      console.log(`Server started on port ${PORT}`);
+    });
+  })
   .catch(err => console.log(err));
 
 // ── Serving SPA ─────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'frontend/dist')));
     // Single page Application Fallback
     app.get('*', (req, res) => {
         // Prevent API requests from resolving to index.html on missing endpoints
@@ -114,7 +127,3 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.resolve(__dirname, 'frontend', 'dist', 'index.html'));
     });
 }
-
-// ── Start Server ────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

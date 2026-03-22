@@ -15,7 +15,10 @@ const {
 } = require("../controllers/dynamicController");
 
 const checkPermission = (requiredPerm) => (req, res, next) => {
-    if (req.validKey && req.validKey.permissions && !req.validKey.permissions.includes(requiredPerm)) {
+    const permissions = req.validKey && req.validKey.permissions;
+    const hasValidPermissions = Array.isArray(permissions);
+
+    if (!hasValidPermissions || !permissions.includes(requiredPerm)) {
         return res.status(403).json({ message: `API key does not have '${requiredPerm}' permission` });
     }
     next();

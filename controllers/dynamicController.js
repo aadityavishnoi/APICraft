@@ -83,7 +83,7 @@ const createData = async (req, res) => {
     // ITEM 3: Use namespaced physical name
     const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
 
-    const docCount = await Model.countDocuments();
+    const docCount = await Model.estimatedDocumentCount();
     if (docCount >= MAX_DOCUMENTS_PER_COLLECTION) {
       return res.status(429).json({
         message: `Document limit of ${MAX_DOCUMENTS_PER_COLLECTION} reached for this collection`
