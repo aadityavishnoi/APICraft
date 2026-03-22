@@ -39,9 +39,9 @@ try {
 }
 
 // ── Frontend static ──────────────────────────────────────────
-const distPath = path.join(__dirname, "frontend", "dist");
+const distPath = path.join(__dirname, "public");
 
-// Serve static files from the frontend/dist directory
+// Serve static files from the public directory
 app.use(express.static(distPath));
 
 // serve index.html for root path only
