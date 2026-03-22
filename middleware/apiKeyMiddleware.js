@@ -19,6 +19,13 @@ const apiKeyMiddleware = async (req, res, next) => {
 
     const [userId, secretPart] = apiKey.split('.');
 
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(403).json({
+        message: "Invalid API key"
+      });
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {

@@ -21,9 +21,16 @@ const dynamicRoutes = require('./routes/dynamicRoutes');
 
 const app = express();
 
-
 // ── Middleware Pipeline ──────────────────────────────────────
 
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+try {
+    const swaggerDocument = YAML.load('./swagger.yaml');
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+} catch (e) {
+    console.error("Swagger YAML not found", e.message);
+}
 // ITEM 15: Explicitly hardened Helmet policy
 app.use(helmet({
   hsts: {
