@@ -9,6 +9,7 @@ const { apiLimiter } = require("../middleware/rateLimitMiddleware");
 const {
   createData,
   getData,
+  getSingleData,
   updateData,
   deleteData
 } = require("../controllers/dynamicController");
@@ -23,6 +24,7 @@ const checkPermission = (requiredPerm) => (req, res, next) => {
 // ITEM 7: apiLimiter as the first middleware
 router.post("/api/:collection", apiLimiter, apiKeyMiddleware, checkPermission('write'), usageMiddleware, logMiddleware, createData);
 router.get("/api/:collection", apiLimiter, apiKeyMiddleware, checkPermission('read'), usageMiddleware, logMiddleware, getData);
+router.get("/api/:collection/:id", apiLimiter, apiKeyMiddleware, checkPermission('read'), usageMiddleware, logMiddleware, getSingleData);
 router.put("/api/:collection/:id", apiLimiter, apiKeyMiddleware, checkPermission('write'), usageMiddleware, logMiddleware, updateData);
 router.delete("/api/:collection/:id", apiLimiter, apiKeyMiddleware, checkPermission('delete'), usageMiddleware, logMiddleware, deleteData);
 

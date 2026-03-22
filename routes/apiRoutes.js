@@ -8,13 +8,13 @@ const { createCollection, getCollection, deleteCollection, updateCollection, get
 const validateCollection = require("../middleware/validationMiddleware");
 
 // ITEM 7: dashboardLimiter after authMiddleware
-router.post("/collections", authMiddleware, dashboardLimiter, validateCollection, createCollection);
+router.post("/create-collection", authMiddleware, dashboardLimiter, validateCollection, createCollection);
 router.get("/collections", authMiddleware, dashboardLimiter, getCollection);
 router.delete("/collections/:name", authMiddleware, dashboardLimiter, deleteCollection);
 router.put("/collections/:name", authMiddleware, dashboardLimiter, updateCollection);
 
 router.get("/api-logs", authMiddleware, dashboardLimiter, getApiLogs);
-router.get("/log-stats", authMiddleware, dashboardLimiter, getLogStats);
+router.get("/logs/stats", authMiddleware, dashboardLimiter, getLogStats);
 router.get("/api-docs", authMiddleware, dashboardLimiter, generateDocs);
 
 const { getKeys, createKey, deleteKey, updateKey, rotateKey } = require("../controllers/keyController");

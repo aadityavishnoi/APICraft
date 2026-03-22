@@ -87,7 +87,7 @@ const updateCollection = async(req, res) => {
                 fields: req.body.fields
             },
             {
-                new: true
+                returnDocument: 'after'
             }
         );
 

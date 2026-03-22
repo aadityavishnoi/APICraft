@@ -9,7 +9,7 @@ const usageMiddleware = async (req, res, next) => {
         const result = await User.findOneAndUpdate(
             { _id: userId, $expr: { $lt: ["$usageCount", "$usageLimit"] } },
             { $inc: { usageCount: 1 } },
-            { new: true }
+            { returnDocument: 'after' }
         );
 
         if (!result) {

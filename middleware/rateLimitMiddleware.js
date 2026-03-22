@@ -32,6 +32,7 @@ const dashboardLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 200,
   keyGenerator: (req) => req.user?.id || req.ip,
+  validate: false,
   message: { message: 'Rate limit exceeded.' },
   standardHeaders: true,
   legacyHeaders: false,

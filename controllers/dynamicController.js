@@ -64,7 +64,13 @@ const createData = async (req, res) => {
     }
 
     for (let key of incomingFields) {
-      if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
+      const val = req.body[key];
+      if (key.startsWith('$') || (val !== null && typeof val === 'object')) {
+        return res.status(400).json({
+          message: "Nested objects or operator keys are not allowed."
+        });
+      }
+      if (typeof val === 'string' && val.length > 5000) {
         return res.status(400).json({
           message: "Field value exceeds maximum length of 5000 characters."
         });
@@ -149,6 +155,54 @@ const getData = async (req, res) => {
   }
 };
 
+const getSingleData = async (req, res) => {
+  try {
+    const collection = req.params.collection;
+    const id = req.params.id;
+
+    const config = await Collection.findOne({
+      collectionName: collection,
+      userId: req.user.id
+    });
+
+    if (!config) {
+      return res.status(404).json({
+        message: "Collection Not Found!"
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        message: "Invalid document ID"
+      });
+    }
+
+    const Model = mongoose.connection.collection(getMongoCollectionName(config.userId.toString(), config.collectionName));
+
+    const allowedFieldNames = config.fields.map(f => f.split(':')[0]);
+    const projection = { _id: 1 };
+    allowedFieldNames.forEach(f => { projection[f] = 1; });
+
+    const result = await Model.findOne({ _id: new mongoose.Types.ObjectId(id) }, { projection });
+
+    if (!result) {
+      return res.status(404).json({
+        message: "Document not found"
+      });
+    }
+
+    res.json({
+      data: result
+    });
+
+  } catch (error) {
+    console.error("[getSingleData]", error.message);
+    res.status(500).json({
+      message: "Error Fetching Data!"
+    });
+  }
+};
+
 const updateData = async (req, res) => {
   try {
     const collection = req.params.collection;
@@ -180,7 +234,13 @@ const updateData = async (req, res) => {
     }
 
     for (let key of incomingFields) {
-      if (typeof req.body[key] === 'string' && req.body[key].length > 5000) {
+      const val = req.body[key];
+      if (key.startsWith('$') || (val !== null && typeof val === 'object')) {
+        return res.status(400).json({
+          message: "Nested objects or operator keys are not allowed."
+        });
+      }
+      if (typeof val === 'string' && val.length > 5000) {
         return res.status(400).json({
           message: "Field value exceeds maximum length of 5000 characters."
         });
@@ -274,6 +334,7 @@ const deleteData = async (req, res) => {
 module.exports = {
   createData,
   getData,
+  getSingleData,
   updateData,
   deleteData
 };
