@@ -1,7 +1,8 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api';
-import { ArrowRight } from 'lucide-react';
+import { auth } from '../firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const AuthView = () => {
   const [mode, setMode] = useState('login');
@@ -9,6 +10,15 @@ const AuthView = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
+
+  const handleFirebaseSuccess = async (userCredential) => {
+    const token = await userCredential.user.getIdToken();
+    const { data } = await api.post('/auth/firebase', {
+      token,
+      name: formData.name || userCredential.user.displayName
+    });
+    login(data.user, data.token);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,21 +31,40 @@ const AuthView = () => {
     setLoading(true);
 
     try {
-      const endpoint = mode === 'signup' ? '/auth/signup' : '/auth/login';
-      const payload = mode === 'signup' 
-        ? { name: formData.name, email: formData.email, password: formData.password } 
-        : { email: formData.email, password: formData.password };
-      
-      const { data } = await api.post(endpoint, payload);
-      
+      let userCredential;
       if (mode === 'signup') {
-        setMode('login');
-        setError('success:Account created! You can now sign in.');
+        userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        try {
+           await handleFirebaseSuccess(userCredential);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to authenticate with backend.');
+        }
       } else {
-        login(data.user, data.token);
+        userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        try {
+           await handleFirebaseSuccess(userCredential);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to authenticate with backend.');
+        }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Authentication failed');
+      console.error(err);
+      setError(err.message.replace('Firebase: ', ''));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      await handleFirebaseSuccess(userCredential);
+    } catch (err) {
+      console.error(err);
+      setError(err.message.replace('Firebase: ', ''));
     } finally {
       setLoading(false);
     }
@@ -53,10 +82,11 @@ const AuthView = () => {
     }}>
       <div className="card" style={{ 
         width: '100%', 
-        maxWidth: '400px', 
+        maxWidth: '430px', 
         padding: '2.5rem',
         background: 'var(--bg-card)',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+        boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+        borderRadius: '12px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
@@ -65,6 +95,37 @@ const AuthView = () => {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
             {mode === 'login' ? 'Sign in to your account' : 'Create your account to get started'}
           </p>
+        </div>
+
+        <button 
+          onClick={handleGoogleAuth} 
+          disabled={loading}
+          type="button"
+          style={{
+            width: '100%',
+            padding: '0.8rem',
+            background: 'white',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            marginBottom: '1.5rem',
+            fontSize: '0.95rem'
+          }}
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: '18px', height: '18px' }} />
+          Continue with Google
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
+          <span style={{ padding: '0 10px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }}></div>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>

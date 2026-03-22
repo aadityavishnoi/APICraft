@@ -3,78 +3,37 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Joi = require('joi');
+const admin = require('firebase-admin');
 
-const SALT_ROUNDS = 12;
-
-const signupSchema = Joi.object({
-    name: Joi.string().min(1).max(100).required(),
-    email: Joi.string().email().max(200).required(),
-    password: Joi.string().min(8).max(128).required()
-});
-
-const loginSchema = Joi.object({
-    email: Joi.string().email().max(200).required(),
-    password: Joi.string().min(1).max(128).required()
-});
-
-const signup = async (req, res) => {
-    try {
-        // ITEM 10: validate on signup
-        const { error: validationError } = signupSchema.validate(req.body);
-        if (validationError) return res.status(400).json({ message: validationError.details[0].message });
-
-        const { name, email, password } = req.body;
-
-        const existingUser = await User.findOne({ email });
-        if(existingUser) {
-            return res.status(400).json({
-                message: "User Already Exists!"
-            });
-        }
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword
-        });
-
-        await newUser.save();
-
-        res.json({
-            message: "User Created Successfully!"
-        })
-    } catch (error) {
-        console.error("[signup]", error.message);
-        res.status(500).json({
-            message: "Error Creating User!"
-        });
+try {
+    admin.initializeApp({
+        projectId: 'apicraft-ce0a0'
+    });
+} catch(err) {
+    if (!/already exists/.test(err.message)) {
+        console.error('Firebase admin init error', err.stack);
     }
 }
 
-const login = async(req, res) => {
+const firebaseLogin = async (req, res) => {
     try {
-        // ITEM 10: validate on login
-        const { error: validationError } = loginSchema.validate(req.body);
-        if (validationError) return res.status(400).json({ message: 'Invalid email or password.' });
+        const { token, name } = req.body;
+        if (!token) return res.status(400).json({ message: 'Firebase token is required.' });
 
-        const { email, password } = req.body;
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        const { uid, email, name: firebaseName } = decodedToken;
 
-        // ITEM 9: Generic error message for both cases
-        const GENERIC_ERROR = 'Invalid email or password.';
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
 
         if (!user) {
-            // Run a dummy bcrypt to prevent timing attacks using a statically valid hash map
-            await bcrypt.compare(password || 'dummy', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy');
-            return res.status(400).json({ message: GENERIC_ERROR });
+            user = new User({
+                name: firebaseName || name || 'User',
+                email: email
+            });
+            await user.save();
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: GENERIC_ERROR });
-        }
-
-        const token = jwt.sign(
+        const jwtToken = jwt.sign(
             { id: user._id.toString() },
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
@@ -82,7 +41,7 @@ const login = async(req, res) => {
 
         res.json({
             message: "Login Successful!",
-            token,
+            token: jwtToken,
             user: {
                 id: user._id.toString(),
                 name: user.name,
@@ -92,9 +51,9 @@ const login = async(req, res) => {
             },
         });
     } catch (error) {
-        console.error("[login]", error.message);
-        res.status(500).json({
-            message: "Login Failed"
+        console.error("[firebaseLogin]", error.message);
+        res.status(401).json({
+            message: "Authentication Failed"
         });
     }
 };
@@ -146,9 +105,6 @@ const updateUser = async (req, res) => {
 
         if (name) user.name = name;
         if (email) user.email = email;
-        if (password) {
-            user.password = await bcrypt.hash(password, SALT_ROUNDS);
-        }
 
         await user.save();
         res.json({ message: "Profile updated successfully" });
@@ -182,4 +138,4 @@ const getProfile = async (req, res) => {
     }
 };
 
-module.exports = { signup, login, generateApiKey, updateUser, deleteAccount, getProfile };
+module.exports = { firebaseLogin, generateApiKey, updateUser, deleteAccount, getProfile };
