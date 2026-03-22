@@ -103,24 +103,6 @@ const updateUser = async (req, res) => {
         const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        try {
-            const fbUser = await admin.auth().getUserByEmail(user.email);
-            
-            const updatePayload = {};
-            if (name) updatePayload.displayName = name;
-            if (email && email !== user.email) updatePayload.email = email;
-            if (password) updatePayload.password = password;
-
-            if (Object.keys(updatePayload).length > 0) {
-                await admin.auth().updateUser(fbUser.uid, updatePayload);
-            }
-        } catch (fbErr) {
-            console.error("Firebase update error:", fbErr);
-            if (password || (email && email !== user.email)) {
-                return res.status(400).json({ message: "Failed to update credentials in Firebase: " + fbErr.message });
-            }
-        }
-
         if (name) user.name = name;
         if (email) user.email = email;
 

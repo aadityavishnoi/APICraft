@@ -4,6 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CopyButton } from '../components/CopyButton';
 import { User, ShieldAlert, Activity, Globe } from 'lucide-react';
+import { auth } from '../firebase';
+import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 
 const SettingsView = () => {
   const { user, login, logout } = useContext(AuthContext);
@@ -18,22 +20,42 @@ const SettingsView = () => {
     setLoading(true);
     setMsg('');
     try {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        if (profileData.name !== user.name) {
+          await updateProfile(currentUser, { displayName: profileData.name });
+        }
+        if (profileData.email !== user.email) {
+          await updateEmail(currentUser, profileData.email);
+        }
+        if (profileData.password) {
+          await updatePassword(currentUser, profileData.password);
+        }
+      }
+
       const payload = {};
       if (profileData.name !== user.name) payload.name = profileData.name;
       if (profileData.email !== user.email) payload.email = profileData.email;
-      if (profileData.password) payload.password = profileData.password;
       
-      if (Object.keys(payload).length === 0) {
+      if (Object.keys(payload).length > 0) {
+        const { data } = await api.put('/auth/profile', payload);
+        setMsg(data.message);
+      } else if (profileData.password) {
+        setMsg("Password updated successfully");
+      } else {
         setLoading(false);
         return setMsg("No changes detected.");
       }
       
-      const { data } = await api.put('/auth/profile', payload);
-      setMsg(data.message);
       login({ ...user, name: profileData.name, email: profileData.email }, localStorage.getItem('token'));
       setProfileData({ ...profileData, password: '' });
     } catch(err) {
-      setMsg(err.response?.data?.message || 'Update failed');
+      console.error(err);
+      if (err.code === 'auth/requires-recent-login') {
+        setMsg('For security, please log out and log back in to update settings.');
+      } else {
+        setMsg(err.message?.replace('Firebase: ', '') || err.response?.data?.message || 'Update failed');
+      }
     } finally {
       setLoading(false);
     }
