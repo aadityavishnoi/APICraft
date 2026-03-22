@@ -48,19 +48,7 @@ app.use(helmet({
     includeSubDomains: true,
     preload: true
   },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"], // copilot: allow Swagger UI scripts
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      frameSrc: ["'none'"],
-      upgradeInsecureRequests: [],
-    }
-  },
+  contentSecurityPolicy: false, // Disabled — frontend is on a separate Vercel domain
   crossOriginEmbedderPolicy: false
 }));
 
@@ -70,7 +58,7 @@ app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 // ITEM 14: Read allowed CORS explicitly from an env array
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173'];
+  : ['http://localhost:5173', 'https://api-craft-neon.vercel.app'];
 
 app.use(cors({
   origin: (origin, callback) => {
