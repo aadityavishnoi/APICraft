@@ -14,7 +14,6 @@ const dynamicRoutes = require("./routes/dynamicRoutes");
 
 dotenv.config();
 connectDB();
-
 const app = express();
 
 app.use(helmet());
