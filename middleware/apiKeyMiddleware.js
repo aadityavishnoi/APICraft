@@ -19,6 +19,13 @@ const apiKeyMiddleware = async (req, res, next) => {
 
     const [userId, secretPart] = apiKey.split('.');
 
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(403).json({
+        message: "Invalid API key"
+      });
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
@@ -30,13 +37,11 @@ const apiKeyMiddleware = async (req, res, next) => {
     let match = false;
     let validKeyObj = null;
 
-    if (user.apiKey) {
-      match = await bcrypt.compare(secretPart, user.apiKey);
-    }
-
-    if (!match && user.apiKeys && user.apiKeys.length > 0) {
+    // ITEM 6: Iterating apiKeys array only (legacy user.apiKey bypass removed)
+    if (user.apiKeys && user.apiKeys.length > 0) {
+      const incomingPrefix = secretPart.substring(0, 8); 
       for (let k of user.apiKeys) {
-        if (!k.revoked) {
+        if (!k.revoked && (!k.keyPrefix || k.keyPrefix === incomingPrefix)) {
           const isMatch = await bcrypt.compare(secretPart, k.keyHash);
           if (isMatch) {
             match = true;
@@ -53,17 +58,26 @@ const apiKeyMiddleware = async (req, res, next) => {
       });
     }
 
+    // ITEM 2: Update lastUsed/requestCount BEFORE normalizing
     if (validKeyObj) {
       validKeyObj.lastUsed = new Date();
       validKeyObj.requestCount += 1;
       await user.save();
     }
 
-    req.user = user;
+    // ITEM 2: Set req.user to a normalized plain object matching authMiddleware
+    req.user = {
+      id: user._id.toString(),
+      _id: user._id
+    };
+
+    req.validKey = validKeyObj;
+    req.apiKeyObj = validKeyObj; // as requested
+
     next();
 
   } catch (error) {
-    console.log(error);
+    console.error("[apiKeyMiddleware]", error.message);
     res.status(500).json({
       message: "API key authentication error"
     });

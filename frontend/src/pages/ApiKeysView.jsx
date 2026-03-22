@@ -112,7 +112,7 @@ const ApiKeysView = () => {
               <code className="mono" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                 {maskKey(k.id)}
               </code>
-              <CopyButton text={k.id} className="btn-ghost" style={{ padding: '0.4rem' }} />
+              {/* CAT3-B: Key value is only shown once at generation time — ObjectId is not a usable key */}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1rem', padding: '0.5rem 0' }}>

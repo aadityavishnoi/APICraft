@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
 
     createdAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now
     },
 
     apiKey: {
@@ -24,6 +24,12 @@ const userSchema = mongoose.Schema({
     apiKeys: [{
         name: String,
         keyHash: String,
+        keyPrefix: String,
+        permissions: {
+            type: [String],
+            enum: ['read', 'write', 'delete'],
+            default: ['read', 'write', 'delete']
+        },
         createdAt: { type: Date, default: Date.now },
         lastUsed: { type: Date },
         requestCount: { type: Number, default: 0 },

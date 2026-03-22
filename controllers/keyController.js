@@ -11,7 +11,8 @@ const getKeys = async (req, res) => {
             createdAt: k.createdAt,
             lastUsed: k.lastUsed,
             requestCount: k.requestCount,
-            revoked: k.revoked
+            revoked: k.revoked,
+            permissions: k.permissions
         }));
         res.json(keys);
     } catch(err) {
@@ -21,21 +22,38 @@ const getKeys = async (req, res) => {
 
 const createKey = async (req, res) => {
     try {
-        const { name } = req.body;
+        const { name, permissions } = req.body;
         const user = await User.findById(req.user.id);
         
+        // ITEM 8: Enforce max active API keys limit
+        const MAX_KEYS = 20;
+        if (user.apiKeys.filter(k => !k.revoked).length >= MAX_KEYS) {
+            return res.status(400).json({
+                message: `Maximum of ${MAX_KEYS} active API keys allowed.`
+            });
+        }
+
         const secretPart = crypto.randomBytes(32).toString('hex');
-        const apiKey = `${user._id}.${secretPart}`;
+        const apiKey = `${user._id.toString()}.${secretPart}`;
         const keyHash = await bcrypt.hash(secretPart, 10);
-        
+        const keyPrefix = secretPart.substring(0, 8); 
+
+        const validPermissions = ['read', 'write', 'delete'];
+        const keyPermissions = Array.isArray(permissions) 
+            ? permissions.filter(p => validPermissions.includes(p))
+            : ['read', 'write', 'delete'];
+
         user.apiKeys.push({
             name: name || 'Default Key',
-            keyHash
+            keyHash,
+            keyPrefix,
+            permissions: keyPermissions
         });
         
         await user.save();
         res.json({ message: "Key created", apiKey });
     } catch(err) {
+        console.error("[createKey]", err.message);
         res.status(500).json({ message: "Failed to create key" });
     }
 };
@@ -68,4 +86,33 @@ const updateKey = async (req, res) => {
     }
 };
 
-module.exports = { getKeys, createKey, deleteKey, updateKey };
+const rotateKey = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(req.user.id);
+        const oldKey = user.apiKeys.id(id);
+        if (!oldKey) return res.status(404).json({ message: "Key not found" });
+
+        oldKey.revoked = true;
+
+        const secretPart = crypto.randomBytes(32).toString('hex');
+        const apiKey = `${user._id.toString()}.${secretPart}`;
+        const keyHash = await bcrypt.hash(secretPart, 10);
+        const keyPrefix = secretPart.substring(0, 8);
+
+        user.apiKeys.push({
+            name: oldKey.name + ' (rotated)',
+            keyHash,
+            keyPrefix,
+            permissions: oldKey.permissions || ['read', 'write', 'delete']
+        });
+
+        await user.save();
+        res.json({ message: "Key rotated", apiKey });
+    } catch(err) {
+        console.error("[rotateKey]", err.message);
+        res.status(500).json({ message: "Rotation failed" });
+    }
+};
+
+module.exports = { getKeys, createKey, deleteKey, updateKey, rotateKey };

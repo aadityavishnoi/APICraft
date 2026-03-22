@@ -1,4 +1,4 @@
-const { get } = require("mongoose");
+const mongoose = require("mongoose");
 const Collection = require("../models/Collection");
 const ApiLog = require("../models/ApiLog");
 
@@ -18,7 +18,12 @@ const createCollection = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error),
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: "A collection with this name already exists"
+            });
+        }
+        console.error("[createCollection]", error.message);
         res.status(500).json({
             message: "Failed To Create Collection! Server Error."
         });
@@ -33,7 +38,7 @@ const getCollection = async (req, res) => {
 
         res.json(collection);
     } catch (error) {
-        console.log(error);
+        console.error("[getCollection]", error.message);
         res.status(500).json({
             message: "Error Fetching Collections"
         });
@@ -49,11 +54,20 @@ const deleteCollection = async(req, res) => {
             userId: req.user.id
         });
 
+        // ITEM 4: Drop actual data
+        const internalName = `uc_${req.user.id}_${collectionName}`;
+        try {
+            await mongoose.connection.dropCollection(internalName);
+        } catch (e) {
+            // collection may not exist yet if no data was inserted — ignore
+            if (e.codeName !== 'NamespaceNotFound') throw e;
+        }
+
         res.json({
             message: "Collection Deleted Successfully"
         });
     } catch (error) {
-        console.log(error);
+        console.error("[deleteCollection]", error.message);
         res.status(500).json({
             message: "Delete Failed"
         });
@@ -62,28 +76,28 @@ const deleteCollection = async(req, res) => {
 
 const updateCollection = async(req, res) => {
     try{
-    const collectionName = req.params.name;
+        const collectionName = req.params.name;
 
-    const updated = await Collection.findOneAndUpdate(
-        {
-            collectionName,
-            userId: req.user.id
-        },
-        {
-            fields: req.body.fields
-        },
-        {
-            new: true
-        }
-    );
+        const updated = await Collection.findOneAndUpdate(
+            {
+                collectionName,
+                userId: req.user.id
+            },
+            {
+                fields: req.body.fields
+            },
+            {
+                returnDocument: 'after'
+            }
+        );
 
-    res.json(updated);
-} catch(error){
-console.log(error);
-res.status(500).json({
-    message: "Update Failed."
-});
-}
+        res.json(updated);
+    } catch(error){
+        console.error("[updateCollection]", error.message);
+        res.status(500).json({
+            message: "Update Failed."
+        });
+    }
 };
 
 const getApiLogs = async (req, res) => {
@@ -165,7 +179,7 @@ const getLogStats = async (req, res) => {
         charts: { lineChartData, doughnutChartData, barChartData }
     });
   } catch (error) {
-    console.log(error);
+    console.error("[getLogStats]", error.message);
     res.status(500).json({ message: "Error fetching stats" });
   }
 };
@@ -189,10 +203,11 @@ const generateDocs = async (req, res) => {
 
         res.json(docs);
     } catch (error) {
-        console.log(error);
+        console.error("[generateDocs]", error.message);
         res.status(500).json({
-            message: "Docs Generated Successfully!"
+            message: "Error generating docs"
         });
     }
 };
+
 module.exports = { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs };
