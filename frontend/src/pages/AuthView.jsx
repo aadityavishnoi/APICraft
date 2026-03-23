@@ -191,17 +191,6 @@ const AuthView = () => {
             {loading ? 'Processing...' : (mode === 'login' ? 'Sign in' : 'Create account')}
           </button>
         </form>
-
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <button 
-            type="button" 
-            className="btn-ghost"
-            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }} 
-            style={{ fontSize: '0.85rem' }}
-          >
-            {mode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-          </button>
-        </div>
       </div>
     </div>
   );
