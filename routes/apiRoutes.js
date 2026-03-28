@@ -4,7 +4,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const { dashboardLimiter } = require("../middleware/rateLimitMiddleware");
 
-const { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs, getCollectionData } = require("../controllers/apiController");
+const { createCollection, getCollection, deleteCollection, updateCollection, getApiLogs, getLogStats, generateDocs, getCollectionData, updateCollectionRow, deleteCollectionRow } = require("../controllers/apiController");
 const validateCollection = require("../middleware/validationMiddleware");
 
 // ITEM 7: dashboardLimiter after authMiddleware
@@ -17,6 +17,8 @@ router.get("/api-logs", authMiddleware, dashboardLimiter, getApiLogs);
 router.get("/logs/stats", authMiddleware, dashboardLimiter, getLogStats);
 router.get("/api-docs", authMiddleware, dashboardLimiter, generateDocs);
 router.get("/collections/:name/data", authMiddleware, dashboardLimiter, getCollectionData);
+router.put("/collections/:name/data/:id", authMiddleware, dashboardLimiter, updateCollectionRow);
+router.delete("/collections/:name/data/:id", authMiddleware, dashboardLimiter, deleteCollectionRow);
 
 const { getKeys, createKey, deleteKey, updateKey, rotateKey } = require("../controllers/keyController");
 

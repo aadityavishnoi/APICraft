@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { Search, Plus, Trash2, Server, GripVertical } from 'lucide-react';
+import { Search, Plus, Trash2, Server, GripVertical, Pencil, Check, X } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -71,10 +71,13 @@ const CollectionsView = () => {
   const [newColName, setNewColName] = useState('');
   const [fields, setFields] = useState([{ id: 'f1', name: '', type: 'String', required: false }]);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteRowTarget, setDeleteRowTarget] = useState(null);
   
-  const [activeTab, setActiveTab] = useState('endpoints'); // 'endpoints' or 'data'
+  const [activeTab, setActiveTab] = useState('endpoints');
   const [collectionData, setCollectionData] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
+  const [editingRow, setEditingRow] = useState(null); // row _id being edited
+  const [editValues, setEditValues] = useState({}); // field -> value map
 
   const fetchCollections = async () => {
     try {
@@ -134,6 +137,38 @@ const CollectionsView = () => {
       setActiveCol(null);
       fetchCollections();
     } catch(err) { alert('Failed to delete'); }
+  };
+
+  const startEditRow = (row) => {
+    setEditingRow(row._id);
+    const vals = {};
+    activeCol.fields.forEach(f => {
+      const fieldName = f.split(':')[0];
+      vals[fieldName] = row[fieldName] !== undefined ? String(row[fieldName]) : '';
+    });
+    setEditValues(vals);
+  };
+
+  const cancelEditRow = () => {
+    setEditingRow(null);
+    setEditValues({});
+  };
+
+  const handleSaveRow = async (rowId) => {
+    try {
+      await api.put(`/collections/${activeCol.collectionName}/data/${rowId}`, editValues);
+      setEditingRow(null);
+      setEditValues({});
+      fetchCollectionData(activeCol.collectionName);
+    } catch(err) { alert(err.response?.data?.message || 'Failed to update row'); }
+  };
+
+  const handleDeleteRow = async () => {
+    try {
+      await api.delete(`/collections/${activeCol.collectionName}/data/${deleteRowTarget}`);
+      setDeleteRowTarget(null);
+      fetchCollectionData(activeCol.collectionName);
+    } catch(err) { alert('Failed to delete row'); }
   };
 
   const filtered = collections.filter(c => c.collectionName.toLowerCase().includes(search.toLowerCase()));
@@ -358,27 +393,80 @@ const CollectionsView = () => {
                             {activeCol.fields.map((f, i) => (
                               <th key={i}>{f.split(':')[0]}</th>
                             ))}
+                            <th style={{ width: '90px', textAlign: 'center' }}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {collectionData.map((row) => (
-                            <tr key={row._id}>
-                              <td className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }} title={row._id}>
-                                {row._id.slice(-6)}...
-                              </td>
-                              {activeCol.fields.map((f, i) => {
-                                const fieldName = f.split(':')[0];
-                                const val = row[fieldName];
-                                return (
-                                  <td key={i} style={{ fontSize: '0.9rem' }}>
-                                    {typeof val === 'boolean' ? (val ? 'true' : 'false') : 
-                                     val === null || val === undefined ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>null</span> :
-                                     String(val)}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ))}
+                          {collectionData.map((row) => {
+                            const isEditing = editingRow === row._id;
+                            return (
+                              <tr key={row._id}>
+                                <td className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }} title={row._id}>
+                                  {String(row._id).slice(-6)}...
+                                </td>
+                                {activeCol.fields.map((f, i) => {
+                                  const fieldName = f.split(':')[0];
+                                  const val = row[fieldName];
+                                  return (
+                                    <td key={i} style={{ fontSize: '0.9rem' }}>
+                                      {isEditing ? (
+                                        <input
+                                          value={editValues[fieldName] ?? ''}
+                                          onChange={e => setEditValues(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                                          style={{ width: '100%', padding: '0.3rem 0.5rem', fontSize: '0.85rem' }}
+                                        />
+                                      ) : (
+                                        typeof val === 'boolean' ? (val ? 'true' : 'false') :
+                                        val === null || val === undefined ? <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>null</span> :
+                                        String(val)
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                                <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                  {isEditing ? (
+                                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                                      <button
+                                        onClick={() => handleSaveRow(row._id)}
+                                        className="btn-ghost"
+                                        title="Save"
+                                        style={{ color: 'var(--green, #22c55e)', padding: '0.3rem' }}
+                                      >
+                                        <Check size={15} />
+                                      </button>
+                                      <button
+                                        onClick={cancelEditRow}
+                                        className="btn-ghost"
+                                        title="Cancel"
+                                        style={{ color: 'var(--text-muted)', padding: '0.3rem' }}
+                                      >
+                                        <X size={15} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                                      <button
+                                        onClick={() => startEditRow(row)}
+                                        className="btn-ghost"
+                                        title="Edit row"
+                                        style={{ color: 'var(--blue)', padding: '0.3rem' }}
+                                      >
+                                        <Pencil size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteRowTarget(row._id)}
+                                        className="btn-ghost"
+                                        title="Delete row"
+                                        style={{ color: 'var(--error)', padding: '0.3rem' }}
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -397,6 +485,15 @@ const CollectionsView = () => {
         confirmText="Delete Collection"
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmModal 
+        isOpen={!!deleteRowTarget}
+        title="Delete Row"
+        text="Are you sure you want to delete this record? This action cannot be undone."
+        confirmText="Delete Row"
+        onConfirm={handleDeleteRow}
+        onCancel={() => setDeleteRowTarget(null)}
       />
     </div>
   );

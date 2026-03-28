@@ -239,6 +239,46 @@ const getCollectionData = async (req, res) => {
     }
 };
 
+const updateCollectionRow = async (req, res) => {
+    try {
+        const { name, id } = req.params;
+        const collection = await Collection.findOne({ collectionName: name, userId: req.user.id });
+        if (!collection) return res.status(404).json({ message: "Collection not found" });
+
+        const internalName = `uc_${req.user.id}_${name}`;
+        const col = mongoose.connection.collection(internalName);
+
+        const { _id, ...updateFields } = req.body;
+        await col.updateOne(
+            { _id: new mongoose.Types.ObjectId(id) },
+            { $set: updateFields }
+        );
+
+        res.json({ message: "Row updated successfully" });
+    } catch (error) {
+        console.error("[updateCollectionRow]", error.message);
+        res.status(500).json({ message: "Failed to update row" });
+    }
+};
+
+const deleteCollectionRow = async (req, res) => {
+    try {
+        const { name, id } = req.params;
+        const collection = await Collection.findOne({ collectionName: name, userId: req.user.id });
+        if (!collection) return res.status(404).json({ message: "Collection not found" });
+
+        const internalName = `uc_${req.user.id}_${name}`;
+        const col = mongoose.connection.collection(internalName);
+
+        await col.deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+
+        res.json({ message: "Row deleted successfully" });
+    } catch (error) {
+        console.error("[deleteCollectionRow]", error.message);
+        res.status(500).json({ message: "Failed to delete row" });
+    }
+};
+
 module.exports = { 
     createCollection, 
     getCollection, 
@@ -247,5 +287,7 @@ module.exports = {
     getApiLogs, 
     getLogStats, 
     generateDocs, 
-    getCollectionData 
+    getCollectionData,
+    updateCollectionRow,
+    deleteCollectionRow
 };
